@@ -1,0 +1,17 @@
+notests *default:
+  build:
+    target: Vostok.ZooKeeper.Recipes.sln
+    configuration: NoTests
+    tool:
+      name: dotnet
+
+  install:
+    - Vostok.ZooKeeper.Recipes/bin/Release/netstandard2.0/Vostok.ZooKeeper.Recipes.dll
+
+  deps:
+    - vostok.devtools
+
+full-build > notests:
+  build:
+    target: Vostok.ZooKeeper.Recipes.sln
+    configuration: Release

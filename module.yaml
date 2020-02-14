@@ -9,9 +9,16 @@ notests *default:
     - Vostok.ZooKeeper.Recipes/bin/Release/netstandard2.0/Vostok.ZooKeeper.Recipes.dll
 
   deps:
+    - vostok.logging.abstractions
+    - vostok.zookeeper.client.abstractions
     - vostok.devtools
 
 full-build > notests:
+  deps:
+    - vostok.zookeeper.client
+    - vostok.logging.console
+    - vostok.zookeeper.localensemble
+    - vostok.zookeeper.testing
   build:
     target: Vostok.ZooKeeper.Recipes.sln
     configuration: Release

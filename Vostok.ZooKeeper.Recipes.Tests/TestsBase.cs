@@ -7,7 +7,6 @@ using Vostok.Logging.Console;
 using Vostok.ZooKeeper.Client;
 using Vostok.ZooKeeper.Client.Abstractions;
 using Vostok.ZooKeeper.LocalEnsemble;
-using Vostok.ZooKeeper.Recipes.Helpers;
 using Vostok.ZooKeeper.Testing;
 
 namespace Vostok.ZooKeeper.Recipes.Tests
@@ -19,14 +18,12 @@ namespace Vostok.ZooKeeper.Recipes.Tests
 
         protected ZooKeeperEnsemble Ensemble;
         protected ZooKeeperClient ZooKeeperClient;
-        protected ExtendedZooKeeperClient ExtendedZooKeeperClient;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
             Ensemble = ZooKeeperEnsemble.DeployNew(1, Log);
             ZooKeeperClient = CreateZooKeeperClient();
-            ExtendedZooKeeperClient = new ExtendedZooKeeperClient(ZooKeeperClient, Log);
         }
 
         [SetUp]
@@ -34,7 +31,6 @@ namespace Vostok.ZooKeeper.Recipes.Tests
         {
             if (!Ensemble.IsRunning)
                 Ensemble.Start();
-
         }
 
         [OneTimeTearDown]
@@ -44,8 +40,17 @@ namespace Vostok.ZooKeeper.Recipes.Tests
             Ensemble.Dispose();
         }
 
-        protected Task KillSession(ZooKeeperClient client) =>
-            ZooKeeperClientTestsHelper.KillSession(client.SessionId, client.SessionPassword, client.OnConnectionStateChanged, Ensemble.ConnectionString, DefaultTimeout);
+        protected async Task KillSessionAsync(ZooKeeperClient client) =>
+            await ZooKeeperClientTestsHelper.KillSession(client.SessionId, client.SessionPassword, client.OnConnectionStateChanged, Ensemble.ConnectionString, DefaultTimeout);
+
+        protected async Task RestartEnsembleAsync()
+        {
+            Ensemble.Stop();
+
+            await Task.Delay(100.Milliseconds());
+
+            Ensemble.Start();
+        }
 
         protected ZooKeeperClient CreateZooKeeperClient()
         {

@@ -207,7 +207,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests
 
         [TestCase(false)]
         [TestCase(true)]
-        public async Task WaitForDisappearanceAsync_should_complete_when_any_node_deleted(bool first)
+        public async Task WaitForDisappearanceAsync_should_complete_after_any_node_deletion(bool first)
         {
             var node1 = await ZooKeeperClient.CreateAsync(prefix, CreateMode.PersistentSequential);
             var node2 = await ZooKeeperClient.CreateAsync(prefix, CreateMode.PersistentSequential);
@@ -222,7 +222,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests
         }
 
         [Test]
-        public async Task WaitForDisappearanceAsync_should_complete_when_disconnected()
+        public async Task WaitForDisappearanceAsync_should_complete_after_disconnect()
         {
             var node1 = await ZooKeeperClient.CreateAsync(prefix, CreateMode.PersistentSequential);
             var node2 = await ZooKeeperClient.CreateAsync(prefix, CreateMode.PersistentSequential);

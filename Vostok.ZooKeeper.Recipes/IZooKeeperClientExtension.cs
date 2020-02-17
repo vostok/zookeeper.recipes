@@ -24,7 +24,7 @@ namespace Vostok.ZooKeeper.Recipes
 
             while (true)
             {
-                var result = await client.CreateAsync(request);
+                var result = await client.CreateAsync(request).ConfigureAwait(false);
 
                 if (!result.Status.IsNetworkError())
                     return result;
@@ -50,7 +50,7 @@ namespace Vostok.ZooKeeper.Recipes
 
             while (true)
             {
-                var children = await client.GetChildrenAsync(parent);
+                var children = await client.GetChildrenAsync(parent).ConfigureAwait(false);
                 if (children.Status.IsNetworkError())
                     continue;
                 if (!children.IsSuccessful)
@@ -60,7 +60,7 @@ namespace Vostok.ZooKeeper.Recipes
                 if (found == null)
                     return DeleteResult.Unsuccessful(ZooKeeperStatus.NodeNotFound, path, null);
 
-                var delete = await client.DeleteAsync(ZooKeeperPath.Combine(parent, found));
+                var delete = await client.DeleteAsync(ZooKeeperPath.Combine(parent, found)).ConfigureAwait(false);
                 if (delete.Status.IsNetworkError())
                     continue;
                 return delete;
@@ -76,13 +76,13 @@ namespace Vostok.ZooKeeper.Recipes
 
             while (!cancellationToken.IsCancellationRequested)
             {
-                var exists = await client.ExistsAsync(path);
+                var exists = await client.ExistsAsync(path).ConfigureAwait(false);
                 if (exists.Status.IsNetworkError())
                     continue;
                 if (!exists.IsSuccessful || !exists.Exists)
                     return false;
 
-                var children = await client.GetChildrenAsync(parent);
+                var children = await client.GetChildrenAsync(parent).ConfigureAwait(false);
                 if (children.Status.IsNetworkError())
                     continue;
                 if (!children.IsSuccessful)
@@ -100,7 +100,7 @@ namespace Vostok.ZooKeeper.Recipes
 
                 var previous = ZooKeeperPath.Combine(parent, previousName);
 
-                await client.WaitForDisappearanceAsync(new[] {path, previous}, log, cancellationToken);
+                await client.WaitForDisappearanceAsync(new[] {path, previous}, log, cancellationToken).ConfigureAwait(false);
             }
 
             return false;
@@ -128,7 +128,7 @@ namespace Vostok.ZooKeeper.Recipes
             {
                 foreach (var path in paths)
                 {
-                    var exists = await client.ExistsAsync(new ExistsRequest(path) {Watcher = watcher, IgnoreWatchersCache = true});
+                    var exists = await client.ExistsAsync(new ExistsRequest(path) {Watcher = watcher, IgnoreWatchersCache = true}).ConfigureAwait(false);
                     if (!exists.IsSuccessful || !exists.Exists)
                         return;
                 }

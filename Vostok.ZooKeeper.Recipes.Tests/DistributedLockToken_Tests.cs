@@ -13,7 +13,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests
     internal class DistributedLockToken_Tests : TestsBase
     {
         private readonly string path = "/token";
-        
+
         [Test]
         public async Task Dispose_should_delete_node()
         {

@@ -54,7 +54,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests
 
         protected ZooKeeperClient CreateZooKeeperClient()
         {
-            var settings = new ZooKeeperClientSettings(Ensemble.ConnectionString) { Timeout = DefaultTimeout };
+            var settings = new ZooKeeperClientSettings(Ensemble.ConnectionString) {Timeout = DefaultTimeout};
             return new ZooKeeperClient(settings, Log);
         }
     }

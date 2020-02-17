@@ -7,6 +7,7 @@ using FluentAssertions.Extensions;
 using NUnit.Framework;
 using Vostok.Commons.Testing;
 using Vostok.ZooKeeper.Client.Abstractions;
+
 // ReSharper disable AccessToDisposedClosure
 
 namespace Vostok.ZooKeeper.Recipes.Tests
@@ -71,7 +72,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests
         public void Should_wait_connected()
         {
             var @lock = new DistributedLock(ZooKeeperClient, new DistributedLockSettings(folder), Log);
-            
+
             Ensemble.Stop();
 
             var task = @lock.AcquireAsync();
@@ -147,7 +148,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests
             var @lock = new DistributedLock(localClient, new DistributedLockSettings(folder), Log);
 
             localClient.Dispose();
-            
+
             @lock.AcquireAsync().ShouldCompleteWithErrorIn<Exception>(DefaultTimeout);
         }
 
@@ -161,7 +162,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests
             var token = @lock.AcquireAsync().ShouldCompleteIn(DefaultTimeout);
 
             localClient.Dispose();
-            
+
             Action check = () => token.Dispose();
             check.Should().Throw<Exception>();
         }

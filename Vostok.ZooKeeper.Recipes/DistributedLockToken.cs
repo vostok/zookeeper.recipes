@@ -36,7 +36,7 @@ namespace Vostok.ZooKeeper.Recipes
                         {
                             log.Info("Lost a lock with path '{Path}'.", path);
                             Dispose();
-                        });
+                        }).ConfigureAwait(false);
                 });
         }
 

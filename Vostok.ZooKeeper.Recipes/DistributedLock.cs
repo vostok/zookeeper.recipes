@@ -44,7 +44,7 @@ namespace Vostok.ZooKeeper.Recipes
                         return @lock;
                 }
 
-                throw new OperationCanceledException($"Distributed lock '{lockFolder}' acqure has been canceled.");
+                throw new OperationCanceledException($"Lock '{lockFolder}' acqure has been canceled.");
             }
         }
 
@@ -57,7 +57,7 @@ namespace Vostok.ZooKeeper.Recipes
                 {
                     Data = lockData
                 },
-                log);
+                log).ConfigureAwait(false);
 
             if (!create.IsSuccessful)
                 throw new Exception("Failed to create lock node.", create.Exception);

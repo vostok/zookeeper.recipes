@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -6,6 +7,7 @@ using FluentAssertions.Extensions;
 using NUnit.Framework;
 using Vostok.Commons.Testing;
 using Vostok.ZooKeeper.Client.Abstractions;
+// ReSharper disable AccessToDisposedClosure
 
 namespace Vostok.ZooKeeper.Recipes.Tests
 {
@@ -26,41 +28,146 @@ namespace Vostok.ZooKeeper.Recipes.Tests
             var @lock = new DistributedLock(ZooKeeperClient, new DistributedLockSettings(folder), Log);
 
             var token = await @lock.AcquireAsync();
-            Thread.Sleep(100.Milliseconds());
             token.IsAcquired.Should().BeTrue();
             token.Dispose();
 
-            Action check = () => ZooKeeperClient.GetChildren(folder).ChildrenNames.Should().BeEmpty();
-            check.ShouldPassIn(DefaultTimeout);
+            CheckNoLocks();
         }
 
         [Test]
-        public void Should_works()
+        public async Task Should_works_concurrently()
+        {
+            var @lock = new DistributedLock(ZooKeeperClient, new DistributedLockSettings(folder), Log);
+            var counter = 0;
+            var working = 0;
+
+            async Task MakeJob(int i)
+            {
+                using (await @lock.AcquireAsync())
+                {
+                    Interlocked.Increment(ref working).Should().Be(1);
+
+                    await Task.Delay(10.Milliseconds());
+
+                    Interlocked.Add(ref counter, i);
+
+                    Interlocked.Decrement(ref working);
+                }
+            }
+
+            var tasks = Enumerable.Range(0, 10)
+                .Select(i => Task.Run(async () => await MakeJob(i)))
+                .ToList();
+
+            await Task.WhenAll(tasks);
+
+            counter.Should().Be(45);
+            working.Should().Be(0);
+
+            CheckNoLocks();
+        }
+
+        [Test]
+        public void Should_wait_connected()
+        {
+            var @lock = new DistributedLock(ZooKeeperClient, new DistributedLockSettings(folder), Log);
+            
+            Ensemble.Stop();
+
+            var task = @lock.AcquireAsync();
+            task.ShouldNotCompleteIn(1.Seconds());
+
+            Ensemble.Start();
+
+            var token = task.ShouldCompleteIn(DefaultTimeout);
+            token.IsAcquired.Should().BeTrue();
+            token.Dispose();
+
+            CheckNoLocks();
+        }
+
+        [Test]
+        public async Task Should_pass_lock_on_session_expire()
+        {
+            using (var localClient = CreateZooKeeperClient())
+            {
+                var lock1 = new DistributedLock(localClient, new DistributedLockSettings(folder), Log);
+                var lock2 = new DistributedLock(ZooKeeperClient, new DistributedLockSettings(folder), Log);
+
+                var task1 = lock1.AcquireAsync();
+                var token1 = task1.ShouldCompleteIn(DefaultTimeout);
+
+                var task2 = lock2.AcquireAsync();
+                task2.ShouldNotCompleteIn(1.Seconds());
+
+                token1.IsAcquired.Should().BeTrue();
+
+                await KillSessionAsync(localClient);
+
+                var token2 = task2.ShouldCompleteIn(DefaultTimeout);
+                new Action(() => token1.IsAcquired.Should().BeFalse()).ShouldPassIn(DefaultTimeout);
+                token2.IsAcquired.Should().BeTrue();
+
+                token1.Dispose();
+
+                token1.IsAcquired.Should().BeFalse();
+                token2.IsAcquired.Should().BeTrue();
+                token2.Dispose();
+
+                CheckNoLocks();
+            }
+        }
+
+        [Test]
+        public void Should_throw_on_cancel()
         {
             var @lock = new DistributedLock(ZooKeeperClient, new DistributedLockSettings(folder), Log);
 
-            var task1 = @lock.AcquireAsync();
-            var task2 = @lock.AcquireAsync();
-            var task3 = @lock.AcquireAsync();
-
+            var cts = new CancellationTokenSource();
+            var task1 = @lock.AcquireAsync(cts.Token);
             var token1 = task1.ShouldCompleteIn(DefaultTimeout);
+
+            var task2 = @lock.AcquireAsync(cts.Token);
             task2.ShouldNotCompleteIn(1.Seconds());
-            task3.ShouldNotCompleteIn(1.Seconds());
-            token1.IsAcquired.Should().BeTrue();
+
+            cts.Cancel();
+
+            task2.ShouldCompleteWithErrorIn<OperationCanceledException>(DefaultTimeout);
+
             token1.Dispose();
 
-            var token2 = task2.ShouldCompleteIn(DefaultTimeout);
-            task3.ShouldNotCompleteIn(1.Seconds());
-            token1.IsAcquired.Should().BeFalse();
-            token2.IsAcquired.Should().BeTrue();
-            token2.Dispose();
+            CheckNoLocks();
+        }
 
-            var token3 = task3.ShouldCompleteIn(DefaultTimeout);
-            token1.IsAcquired.Should().BeFalse();
-            token2.IsAcquired.Should().BeFalse();
-            token3.IsAcquired.Should().BeTrue();
-            token3.Dispose();
+        [Test]
+        public void Should_throw_on_client_dispose_while_acquire()
+        {
+            var localClient = CreateZooKeeperClient();
 
+            var @lock = new DistributedLock(localClient, new DistributedLockSettings(folder), Log);
+
+            localClient.Dispose();
+            
+            @lock.AcquireAsync().ShouldCompleteWithErrorIn<Exception>(DefaultTimeout);
+        }
+
+        [Test]
+        public void Should_throw_on_client_dispose_while_dispose()
+        {
+            var localClient = CreateZooKeeperClient();
+
+            var @lock = new DistributedLock(localClient, new DistributedLockSettings(folder), Log);
+
+            var token = @lock.AcquireAsync().ShouldCompleteIn(DefaultTimeout);
+
+            localClient.Dispose();
+            
+            Action check = () => token.Dispose();
+            check.Should().Throw<Exception>();
+        }
+
+        private void CheckNoLocks()
+        {
             Action check = () => ZooKeeperClient.GetChildren(folder).ChildrenNames.Should().BeEmpty();
             check.ShouldPassIn(DefaultTimeout);
         }

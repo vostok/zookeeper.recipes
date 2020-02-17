@@ -90,6 +90,19 @@ namespace Vostok.ZooKeeper.Recipes.Tests
             children.ChildrenNames.Count.Should().Be(times);
         }
 
+        [Test]
+        public void CreateProtectedAsync_should_return_error_if_client_disposed()
+        {
+            var client = CreateZooKeeperClient();
+            client.Dispose();
+
+            client.CreateProtectedAsync(new CreateRequest(prefix, CreateMode.Persistent), Log)
+                .ShouldCompleteIn(DefaultTimeout)
+                .Status
+                .Should()
+                .Be(ZooKeeperStatus.Died);
+        }
+
         [TestCase(CreateMode.Persistent)]
         [TestCase(CreateMode.PersistentSequential)]
         [TestCase(CreateMode.Ephemeral)]
@@ -99,7 +112,6 @@ namespace Vostok.ZooKeeper.Recipes.Tests
             var created = await ZooKeeperClient.CreateProtectedAsync(new CreateRequest(prefix, createMode), Log);
             created.IsSuccessful.Should().BeTrue();
             ZooKeeperClient.Exists(created.NewPath).Exists.Should().BeTrue();
-
 
             var deleted = await ZooKeeperClient.DeleteProtectedAsync(new DeleteRequest(created.NewPath), Log);
             deleted.IsSuccessful.Should().BeTrue();
@@ -132,6 +144,19 @@ namespace Vostok.ZooKeeper.Recipes.Tests
 
             task.ShouldCompleteIn(DefaultTimeout).IsSuccessful.Should().BeTrue();
             ZooKeeperClient.Exists(created.NewPath).Exists.Should().BeFalse();
+        }
+
+        [Test]
+        public void DeleteProtectedAsync_should_return_error_if_client_disposed()
+        {
+            var client = CreateZooKeeperClient();
+            client.Dispose();
+
+            client.DeleteProtectedAsync(new DeleteRequest(prefix), Log)
+                .ShouldCompleteIn(DefaultTimeout)
+                .Status
+                .Should()
+                .Be(ZooKeeperStatus.Died);
         }
 
         [Test]
@@ -172,7 +197,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests
         {
             var node1 = await ZooKeeperClient.CreateAsync(prefix, CreateMode.PersistentSequential);
             var node2 = await ZooKeeperClient.CreateAsync(prefix, CreateMode.PersistentSequential);
-            
+
             var task2 = ZooKeeperClient.WaitForLeadershipAsync(node2.NewPath, Log);
 
             task2.ShouldNotCompleteIn(1.Seconds());
@@ -227,7 +252,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests
             var node1 = await ZooKeeperClient.CreateAsync(prefix, CreateMode.PersistentSequential);
             var node2 = await ZooKeeperClient.CreateAsync(prefix, CreateMode.PersistentSequential);
 
-            var task = ZooKeeperClient.WaitForDisappearanceAsync(new[] { node1.NewPath, node2.NewPath }, Log);
+            var task = ZooKeeperClient.WaitForDisappearanceAsync(new[] {node1.NewPath, node2.NewPath}, Log);
 
             task.ShouldNotCompleteIn(1.Seconds());
 
@@ -244,7 +269,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests
             var node1 = await ZooKeeperClient.CreateAsync(prefix, CreateMode.PersistentSequential);
             var node2 = await ZooKeeperClient.CreateAsync(prefix, CreateMode.PersistentSequential);
 
-            var task = ZooKeeperClient.WaitForDisappearanceAsync(new[] { node1.NewPath, node2.NewPath }, Log, source.Token);
+            var task = ZooKeeperClient.WaitForDisappearanceAsync(new[] {node1.NewPath, node2.NewPath}, Log, source.Token);
 
             task.ShouldNotCompleteIn(1.Seconds());
 

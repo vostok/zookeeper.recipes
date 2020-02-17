@@ -13,6 +13,10 @@ notests *default:
     - vostok.logging.abstractions
     - vostok.zookeeper.client.abstractions
     - vostok.devtools
+    - vostok.commons.binary/src
+    - vostok.commons.environment/src
+    - vostok.commons.helpers/src
+    - vostok.commons.threading/src
 
 full-build > notests:
   deps:
@@ -20,6 +24,8 @@ full-build > notests:
     - vostok.logging.console
     - vostok.zookeeper.localensemble
     - vostok.zookeeper.testing
+    - vostok.commons.testing/src
+
   build:
     target: Vostok.ZooKeeper.Recipes.sln
     configuration: Release

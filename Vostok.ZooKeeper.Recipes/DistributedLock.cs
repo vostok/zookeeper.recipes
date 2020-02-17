@@ -53,11 +53,12 @@ namespace Vostok.ZooKeeper.Recipes
             log.Info("Acquiring lock..");
 
             var create = await client.CreateProtectedAsync(
-                new CreateRequest(lockPath, CreateMode.EphemeralSequential)
-                {
-                    Data = lockData
-                },
-                log).ConfigureAwait(false);
+                    new CreateRequest(lockPath, CreateMode.EphemeralSequential)
+                    {
+                        Data = lockData
+                    },
+                    log)
+                .ConfigureAwait(false);
 
             if (!create.IsSuccessful)
                 throw new Exception("Failed to create lock node.", create.Exception);

@@ -32,11 +32,13 @@ namespace Vostok.ZooKeeper.Recipes
                 {
                     await client
                         .WaitForDisappearanceAsync(new[] {path}, log)
-                        .ContinueWith(_ =>
-                        {
-                            log.Info("Lost a lock with path '{Path}'.", path);
-                            Dispose();
-                        }).ConfigureAwait(false);
+                        .ContinueWith(
+                            _ =>
+                            {
+                                log.Info("Lost a lock with path '{Path}'.", path);
+                                Dispose();
+                            })
+                        .ConfigureAwait(false);
                 });
         }
 

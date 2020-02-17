@@ -4,8 +4,8 @@ using FluentAssertions.Extensions;
 using NUnit.Framework;
 using Vostok.Logging.Abstractions;
 using Vostok.Logging.Console;
+using Vostok.Logging.Context;
 using Vostok.ZooKeeper.Client;
-using Vostok.ZooKeeper.Client.Abstractions;
 using Vostok.ZooKeeper.LocalEnsemble;
 using Vostok.ZooKeeper.Testing;
 
@@ -13,7 +13,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests
 {
     internal abstract class TestsBase
     {
-        protected static readonly ILog Log = new SynchronousConsoleLog();
+        protected static readonly ILog Log = new SynchronousConsoleLog().WithOperationContext();
         protected static TimeSpan DefaultTimeout = 10.Seconds();
 
         protected ZooKeeperEnsemble Ensemble;

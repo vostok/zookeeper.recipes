@@ -116,7 +116,12 @@ namespace Vostok.ZooKeeper.Recipes
                         wait.TrySetResult(true);
                 },
                 () => wait.TrySetResult(true));
-            var watcher = new AdHocNodeWatcher((_, __) => wait.TrySetResult(true));
+            var watcher = new AdHocNodeWatcher(
+                (changedType, __) =>
+                {
+                    if (changedType == NodeChangedEventType.Deleted)
+                        wait.TrySetResult(true);
+                });
 
             using (cancellationToken.Register(o => ((TaskCompletionSource<bool>)o).TrySetCanceled(), wait))
             using (client.OnConnectionStateChanged.Subscribe(observer))
@@ -124,7 +129,7 @@ namespace Vostok.ZooKeeper.Recipes
                 foreach (var path in paths)
                 {
                     var exists = await client.ExistsAsync(new ExistsRequest(path) {Watcher = watcher, IgnoreWatchersCache = true});
-                    if (!exists.IsSuccessful)
+                    if (!exists.IsSuccessful || !exists.Exists)
                         return;
                 }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using JetBrains.Annotations;
+using Vostok.ZooKeeper.Client.Abstractions;
 
 namespace Vostok.ZooKeeper.Recipes
 {
@@ -10,8 +11,8 @@ namespace Vostok.ZooKeeper.Recipes
         {
             Path = path ?? throw new ArgumentNullException(nameof(path));
 
-            if (!path.EndsWith("/"))
-                throw new ArgumentException($"Distributed lock path '{path}' must ends with a slash symbol.");
+            if (path == ZooKeeperPath.Root)
+                throw new ArgumentException($"Distributed lock folder '{path}' can't be root.");
         }
 
         [NotNull]

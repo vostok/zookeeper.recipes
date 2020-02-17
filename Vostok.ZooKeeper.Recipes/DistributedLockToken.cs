@@ -2,8 +2,10 @@
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Vostok.Commons.Threading;
+using Vostok.Logging.Abstractions;
+using Vostok.Logging.Context;
 using Vostok.ZooKeeper.Client.Abstractions;
-using Vostok.ZooKeeper.Recipes.Helpers;
+using Vostok.ZooKeeper.Client.Abstractions.Model.Request;
 
 namespace Vostok.ZooKeeper.Recipes
 {
@@ -12,25 +14,43 @@ namespace Vostok.ZooKeeper.Recipes
     {
         private readonly IZooKeeperClient client;
         private readonly string path;
+        private readonly ILog log;
+        private readonly string logContextToken;
         private readonly AtomicBoolean disposed = false;
 
-        internal DistributedLockToken(IZooKeeperClient client, string path)
+        internal DistributedLockToken(IZooKeeperClient client, string path, ILog log)
         {
             this.client = client;
             this.path = path;
+            this.log = log;
+            logContextToken = ZooKeeperPath.GetParentPath(path) ?? "";
 
-            //Task.Run(async () => await client.WaitForDisappearsAsync(path)).ContinueWith(_ => Dispose());
+            Task.Run(
+                async () =>
+                {
+                    await client
+                        .WaitForDisappearanceAsync(new[] {path}, log)
+                        .ContinueWith(_ => Dispose());
+                });
         }
 
         public bool IsAlive => !disposed;
 
         public void Dispose()
         {
-            //if (!disposed.TrySetTrue())
-            //    return;
+            using (new OperationContextToken(logContextToken))
+            {
+                if (!disposed.TrySetTrue())
+                    return;
 
-            //if (!client.DeleteProtectedAsync(path).GetAwaiter().GetResult())
-            //    throw new Exception("Failed to delete lock node.");
+                log.Info("Releasing a lock with path '{Path}'.", path);
+
+                var delete = client.DeleteProtectedAsync(new DeleteRequest(path), log).GetAwaiter().GetResult();
+                if (!delete.IsSuccessful)
+                    throw new Exception("Failed to delete lock node.", delete.Exception);
+
+                log.Info("Lock with path '{Path}' successfully released.", path);
+            }
         }
     }
 }

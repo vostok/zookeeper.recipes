@@ -48,5 +48,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\vostok.zookeeper.client.abstractions\Vostok.ZooKeeper.Client.Abstractions\bin\Release\netstandard2.0\Vostok.ZooKeeper.Client.Abstractions.dll</HintPath>
     </Reference>
+    <Reference Include="Vostok.Logging.Context">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\vostok.logging.context\Vostok.Logging.Context\bin\Release\netstandard2.0\Vostok.Logging.Context.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

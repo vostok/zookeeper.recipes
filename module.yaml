@@ -11,7 +11,7 @@ notests *default:
   deps:
     - vostok.logging.context
     - vostok.logging.abstractions
-    - vostok.zookeeper.client.abstractions
+    - vostok.zookeeper.client.abstractions@lock
     - vostok.devtools
     - vostok.commons.binary/src
     - vostok.commons.environment/src
@@ -20,7 +20,7 @@ notests *default:
 
 full-build > notests:
   deps:
-    - vostok.zookeeper.client
+    - vostok.zookeeper.client@lock
     - vostok.logging.console
     - vostok.zookeeper.localensemble
     - vostok.zookeeper.testing

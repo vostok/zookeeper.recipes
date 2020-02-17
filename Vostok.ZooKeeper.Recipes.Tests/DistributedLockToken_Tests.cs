@@ -22,35 +22,35 @@ namespace Vostok.ZooKeeper.Recipes.Tests
             ZooKeeperClient.Exists(created.NewPath).Exists.Should().BeTrue();
 
             var token = new DistributedLockToken(ZooKeeperClient, created.NewPath, Log);
-            token.IsAlive.Should().BeTrue();
+            token.IsAcquired.Should().BeTrue();
             ZooKeeperClient.Exists(created.NewPath).Exists.Should().BeTrue();
 
             token.Dispose();
 
-            token.IsAlive.Should().BeFalse();
+            token.IsAcquired.Should().BeFalse();
             ZooKeeperClient.Exists(created.NewPath).Exists.Should().BeFalse();
         }
 
         [Test]
-        public async Task IsAlive_should_become_false_on_node_deletion()
+        public async Task IsAcquired_should_become_false_on_node_deletion()
         {
             var created = await ZooKeeperClient.CreateProtectedAsync(new CreateRequest(path, CreateMode.Persistent), Log);
             created.IsSuccessful.Should().BeTrue();
             ZooKeeperClient.Exists(created.NewPath).Exists.Should().BeTrue();
 
             var token = new DistributedLockToken(ZooKeeperClient, created.NewPath, Log);
-            token.IsAlive.Should().BeTrue();
+            token.IsAcquired.Should().BeTrue();
             ZooKeeperClient.Exists(created.NewPath).Exists.Should().BeTrue();
 
             ZooKeeperClient.Delete(created.NewPath).EnsureSuccess();
 
-            Action check = () => token.IsAlive.Should().BeFalse();
+            Action check = () => token.IsAcquired.Should().BeFalse();
             check.ShouldPassIn(DefaultTimeout);
 
             ZooKeeperClient.Exists(created.NewPath).Exists.Should().BeFalse();
 
             token.Dispose();
-            token.IsAlive.Should().BeFalse();
+            token.IsAcquired.Should().BeFalse();
             ZooKeeperClient.Exists(created.NewPath).Exists.Should().BeFalse();
         }
     }

@@ -27,7 +27,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests
 
             var token = await @lock.AcquireAsync();
             Thread.Sleep(100.Milliseconds());
-            token.IsAlive.Should().BeTrue();
+            token.IsAcquired.Should().BeTrue();
             token.Dispose();
 
             Action check = () => ZooKeeperClient.GetChildren(folder).ChildrenNames.Should().BeEmpty();
@@ -46,19 +46,19 @@ namespace Vostok.ZooKeeper.Recipes.Tests
             var token1 = task1.ShouldCompleteIn(DefaultTimeout);
             task2.ShouldNotCompleteIn(1.Seconds());
             task3.ShouldNotCompleteIn(1.Seconds());
-            token1.IsAlive.Should().BeTrue();
+            token1.IsAcquired.Should().BeTrue();
             token1.Dispose();
 
             var token2 = task2.ShouldCompleteIn(DefaultTimeout);
             task3.ShouldNotCompleteIn(1.Seconds());
-            token1.IsAlive.Should().BeFalse();
-            token2.IsAlive.Should().BeTrue();
+            token1.IsAcquired.Should().BeFalse();
+            token2.IsAcquired.Should().BeTrue();
             token2.Dispose();
 
             var token3 = task3.ShouldCompleteIn(DefaultTimeout);
-            token1.IsAlive.Should().BeFalse();
-            token2.IsAlive.Should().BeFalse();
-            token3.IsAlive.Should().BeTrue();
+            token1.IsAcquired.Should().BeFalse();
+            token2.IsAcquired.Should().BeFalse();
+            token3.IsAcquired.Should().BeTrue();
             token3.Dispose();
 
             Action check = () => ZooKeeperClient.GetChildren(folder).ChildrenNames.Should().BeEmpty();

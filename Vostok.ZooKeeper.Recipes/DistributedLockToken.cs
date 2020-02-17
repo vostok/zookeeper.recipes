@@ -34,7 +34,7 @@ namespace Vostok.ZooKeeper.Recipes
                 });
         }
 
-        public bool IsAlive => !disposed;
+        public bool IsAcquired => !disposed;
 
         public void Dispose()
         {

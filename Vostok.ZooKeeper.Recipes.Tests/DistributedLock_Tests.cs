@@ -47,7 +47,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests
             {
                 using (var token = await @lock.AcquireAsync())
                 {
-                    using (token.GetLockContextToken())
+                    using (token.GetContextToken())
                     {
                         Interlocked.Increment(ref working).Should().Be(1);
 

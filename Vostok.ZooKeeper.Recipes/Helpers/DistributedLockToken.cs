@@ -50,7 +50,7 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
         public bool IsAcquired => !disposed;
 
         /// <inheritdoc/>
-        public IDisposable GetLockContextToken() =>
+        public IDisposable GetContextToken() =>
             new OperationContextToken(logTokenValue);
 
         /// <inheritdoc/>

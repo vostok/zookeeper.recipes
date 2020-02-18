@@ -20,6 +20,6 @@ namespace Vostok.ZooKeeper.Recipes
         /// <summary>
         /// Creates new <see cref="OperationContextToken"/> with current lock id.
         /// </summary>
-        IDisposable GetLockContextToken();
+        IDisposable GetContextToken();
     }
 }

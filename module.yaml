@@ -7,6 +7,8 @@ notests *default:
 
   install:
     - Vostok.ZooKeeper.Recipes/bin/Release/netstandard2.0/Vostok.ZooKeeper.Recipes.dll
+    - module vostok.zookeeper.client.abstractions@lock
+    - module vostok.logging.abstractions
 
   deps:
     - vostok.logging.context

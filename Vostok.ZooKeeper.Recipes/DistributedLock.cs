@@ -11,6 +11,10 @@ using Vostok.ZooKeeper.Recipes.Helpers;
 
 namespace Vostok.ZooKeeper.Recipes
 {
+    /// <summary>
+    /// <para><see cref="DistributedLock"/> is an entry point for acquiring distributed lock.</para>
+    /// <para>See <see cref="AcquireAsync"/> and <see cref="DistributedLockToken"/> for details.</para>
+    /// </summary>
     [PublicAPI]
     public class DistributedLock
     {
@@ -32,6 +36,10 @@ namespace Vostok.ZooKeeper.Recipes
             lockData = NodeDataHelper.GetNodeData();
         }
 
+        /// <summary>
+        /// <para>Acquires distributed lock.</para>
+        /// <para>Returns <see cref="DistributedLockToken"/> that should be disposed after use.</para>
+        /// </summary>
         public async Task<DistributedLockToken> AcquireAsync(CancellationToken cancellationToken = default)
         {
             using (new OperationContextToken(lockFolder))

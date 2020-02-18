@@ -15,6 +15,15 @@ namespace Vostok.ZooKeeper.Recipes
     [PublicAPI]
     public static class IZooKeeperClientExtension
     {
+        /// <summary>
+        /// <para>Creates new node specified in given <paramref name="request" />.</para>
+        /// <para>The name of this node will be suffixed with GUID.</para>
+        /// <para>If node creation fails with network error, the normal retry mechanism will occur.</para>
+        /// <para>On the retry, the parent path is first searched for a node that has the GUID in it.</para>
+        /// <para>If that node is found, it is assumed to be the lost node that was successfully created.</para>
+        /// <para>This node will be deleted, before new create attempt.</para>
+        /// <para>Check returned <see cref="CreateResult"/> to see if operation was successful.</para>
+        /// </summary>
         public static async Task<CreateResult> CreateProtectedAsync([NotNull] this IZooKeeperClient client, [NotNull] CreateRequest request, [NotNull] ILog log)
         {
             var protectedPath = request.CreateMode.IsSequential() ? $"{request.Path}-{Guid.NewGuid():N}-" : $"{request.Path}-{Guid.NewGuid():N}";
@@ -36,6 +45,11 @@ namespace Vostok.ZooKeeper.Recipes
             }
         }
 
+        /// <summary>
+        /// <para>Deletes the node specified in given <paramref name="request"/>.</para>
+        /// <para>The parent path is searched for a node that is prefixed with given path.</para>
+        /// <para>Check returned <see cref="DeleteResult"/> to see if operation was successful.</para>
+        /// </summary>
         public static async Task<DeleteResult> DeleteProtectedAsync([NotNull] this IZooKeeperClient client, [NotNull] DeleteRequest request, [NotNull] ILog log)
         {
             log.Info("Deleting a protected node with request '{Request}'..", request);
@@ -67,6 +81,9 @@ namespace Vostok.ZooKeeper.Recipes
             }
         }
 
+        /// <summary>
+        /// Waits until a node with given <param name="path"> will be have the smallest sequential index.</param>
+        /// </summary>
         public static async Task<bool> WaitForLeadershipAsync([NotNull] this IZooKeeperClient client, [NotNull] string path, [NotNull] ILog log, CancellationToken cancellationToken = default)
         {
             log.Info("Waiting while a node with path '{Path}' becomes a leader..", path);
@@ -106,6 +123,9 @@ namespace Vostok.ZooKeeper.Recipes
             return false;
         }
 
+        /// <summary>
+        /// <para>Waits until one of the given nodes will be disappear, or client connection will be lost.</para>
+        /// </summary>
         public static async Task WaitForDisappearanceAsync([NotNull] this IZooKeeperClient client, string[] paths, [NotNull] ILog log, CancellationToken cancellationToken = default)
         {
             var wait = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);

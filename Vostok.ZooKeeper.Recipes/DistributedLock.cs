@@ -39,6 +39,7 @@ namespace Vostok.ZooKeeper.Recipes
         /// <summary>
         /// <para>Acquires distributed lock.</para>
         /// <para>Returns <see cref="DistributedLockToken"/> that should be disposed after use.</para>
+        /// <para>Throws an exception if cancellation has been requested, or non-retryable error has occured.</para>
         /// </summary>
         public async Task<DistributedLockToken> AcquireAsync(CancellationToken cancellationToken = default)
         {

@@ -49,6 +49,10 @@ namespace Vostok.ZooKeeper.Recipes
 
         public bool IsAcquired => !disposed;
 
+        /// <summary>
+        /// <para>Releases lock.</para>
+        /// <para>Throws an exception if non-retryable error has occured.</para>
+        /// </summary>
         public void Dispose()
         {
             using (new OperationContextToken(logContextToken))

@@ -15,15 +15,17 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
         private readonly IZooKeeperClient client;
         private readonly string path;
         private readonly OperationContextToken logToken;
+        private readonly string logTokenValue;
         private readonly ILog log;
         private readonly AtomicBoolean disposed = false;
         private readonly TaskCompletionSource<DeleteResult> deleteResult = new TaskCompletionSource<DeleteResult>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        internal DistributedLockToken(IZooKeeperClient client, string path, OperationContextToken logToken, ILog log)
+        internal DistributedLockToken(IZooKeeperClient client, string path, OperationContextToken logToken, string logTokenValue, ILog log)
         {
             this.client = client;
             this.path = path;
             this.logToken = logToken;
+            this.logTokenValue = logTokenValue;
             this.log = log;
 
             Task.Run(
@@ -46,6 +48,10 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
 
         /// <inheritdoc/>
         public bool IsAcquired => !disposed;
+
+        /// <inheritdoc/>
+        public IDisposable GetLockContextToken() =>
+            new OperationContextToken(logTokenValue);
 
         /// <inheritdoc/>
         public void Dispose()

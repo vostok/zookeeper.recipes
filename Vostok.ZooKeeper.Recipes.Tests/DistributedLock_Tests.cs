@@ -45,16 +45,19 @@ namespace Vostok.ZooKeeper.Recipes.Tests
 
             async Task MakeJob(int i)
             {
-                using (await @lock.AcquireAsync())
+                using (var token = await @lock.AcquireAsync())
                 {
-                    Interlocked.Increment(ref working).Should().Be(1);
+                    using (token.GetLockContextToken())
+                    {
+                        Interlocked.Increment(ref working).Should().Be(1);
 
-                    Log.Info("Making some work..");
-                    await Task.Delay(10.Milliseconds());
+                        Log.Info("Making some work..");
+                        await Task.Delay(10.Milliseconds());
 
-                    Interlocked.Add(ref counter, i);
+                        Interlocked.Add(ref counter, i);
 
-                    Interlocked.Decrement(ref working);
+                        Interlocked.Decrement(ref working);
+                    }
                 }
             }
 

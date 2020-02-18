@@ -1,5 +1,6 @@
 ﻿using System;
 using JetBrains.Annotations;
+using Vostok.Logging.Context;
 
 namespace Vostok.ZooKeeper.Recipes
 {
@@ -15,5 +16,10 @@ namespace Vostok.ZooKeeper.Recipes
         /// <para>Returns whether or not this lock token is still alive.</para>
         /// </summary>
         bool IsAcquired { get; }
+
+        /// <summary>
+        /// Creates new <see cref="OperationContextToken"/> with current lock id.
+        /// </summary>
+        IDisposable GetLockContextToken();
     }
 }

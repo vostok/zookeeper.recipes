@@ -72,7 +72,8 @@ namespace Vostok.ZooKeeper.Recipes
         private async Task<IDistributedLockToken> AcquireOnceAsync(CancellationToken cancellationToken)
         {
             var lockId = Guid.NewGuid();
-            var logToken = new OperationContextToken($"Lock-{lockId.ToString("N").Substring(0, 8)}");
+            var logTokenValue = $"Lock-{lockId.ToString("N").Substring(0, 8)}";
+            var logToken = new OperationContextToken(logTokenValue);
             
             try
             {
@@ -94,7 +95,7 @@ namespace Vostok.ZooKeeper.Recipes
                 {
                     log.Info("Lock with path '{Path}' was successfully acquired.", create.NewPath);
 
-                    return new DistributedLockToken(client, create.NewPath, logToken, log);
+                    return new DistributedLockToken(client, create.NewPath, logToken, logTokenValue, log);
                 }
 
                 log.Info("Lock with path '{Path}' was not acquired.", create.NewPath);

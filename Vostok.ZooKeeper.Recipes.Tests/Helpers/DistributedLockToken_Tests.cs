@@ -23,7 +23,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests.Helpers
             created.IsSuccessful.Should().BeTrue();
             ZooKeeperClient.Exists(created.NewPath).Exists.Should().BeTrue();
 
-            var token = new DistributedLockToken(ZooKeeperClient, created.NewPath, new OperationContextToken(),  Log);
+            var token = new DistributedLockToken(ZooKeeperClient, created.NewPath, new OperationContextToken(), "", Log);
             token.IsAcquired.Should().BeTrue();
             ZooKeeperClient.Exists(created.NewPath).Exists.Should().BeTrue();
 
@@ -40,7 +40,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests.Helpers
             created.IsSuccessful.Should().BeTrue();
             ZooKeeperClient.Exists(created.NewPath).Exists.Should().BeTrue();
 
-            var token = new DistributedLockToken(ZooKeeperClient, created.NewPath, new OperationContextToken(), Log);
+            var token = new DistributedLockToken(ZooKeeperClient, created.NewPath, new OperationContextToken(), "", Log);
             token.IsAcquired.Should().BeTrue();
             ZooKeeperClient.Exists(created.NewPath).Exists.Should().BeTrue();
 

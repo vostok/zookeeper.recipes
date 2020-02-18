@@ -76,7 +76,7 @@ namespace Vostok.ZooKeeper.Recipes
             if (!create.IsSuccessful)
                 throw new Exception("Failed to create lock node.", create.Exception);
 
-            if (await client.WaitForLeadershipAsync(create.NewPath, log, cancellationToken).ConfigureAwait(false))
+            if (await ZooKeeperNodeHelper.WaitForLeadershipAsync(client, create.NewPath, log, cancellationToken).ConfigureAwait(false))
             {
                 log.Info("Lock with path '{Path}' was successfully acquired.", create.NewPath);
 

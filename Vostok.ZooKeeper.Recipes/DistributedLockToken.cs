@@ -7,6 +7,7 @@ using Vostok.Logging.Context;
 using Vostok.ZooKeeper.Client.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Request;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Result;
+using Vostok.ZooKeeper.Recipes.Helpers;
 
 namespace Vostok.ZooKeeper.Recipes
 {
@@ -35,8 +36,8 @@ namespace Vostok.ZooKeeper.Recipes
             Task.Run(
                 async () =>
                 {
-                    await client
-                        .WaitForDisappearanceAsync(new[] {path}, log)
+                    await ZooKeeperNodeHelper
+                        .WaitForDisappearanceAsync(client, new[] {path}, log)
                         .ContinueWith(
                             _ =>
                             {

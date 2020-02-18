@@ -11,6 +11,8 @@ using Vostok.ZooKeeper.Recipes.Helpers;
 
 namespace Vostok.ZooKeeper.Recipes
 {
+    // CR(iloktionov): Maybe add an interface so it can be mocked?
+
     /// <summary>
     /// <para><see cref="DistributedLock"/> is an entry point for acquiring distributed lock.</para>
     /// <para>See <see cref="AcquireAsync"/> and <see cref="DistributedLockToken"/> for details.</para>
@@ -35,6 +37,8 @@ namespace Vostok.ZooKeeper.Recipes
             lockPath = ZooKeeperPath.Combine(lockFolder, "lock");
             lockData = NodeDataHelper.GetNodeData();
         }
+
+        // CR(iloktionov): Add an overload with timeout? TryAcquireAsync?
 
         /// <summary>
         /// <para>Acquires distributed lock.</para>

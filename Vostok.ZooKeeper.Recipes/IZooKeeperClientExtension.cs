@@ -15,6 +15,8 @@ namespace Vostok.ZooKeeper.Recipes
     [PublicAPI]
     public static class IZooKeeperClientExtension
     {
+        // CR(iloktionov): Convert to internal, try to decompose into helpers (WaitForLeadership and WaitForDisappearance are not really extensions).
+
         /// <summary>
         /// <para>Creates new node specified in given <paramref name="request" />.</para>
         /// <para>The name of this node will be suffixed with GUID.</para>

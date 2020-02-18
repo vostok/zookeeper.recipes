@@ -11,14 +11,9 @@ using Vostok.ZooKeeper.Recipes.Helpers;
 
 namespace Vostok.ZooKeeper.Recipes
 {
-    // CR(iloktionov): Maybe add an interface so it can be mocked?
-
-    /// <summary>
-    /// <para><see cref="DistributedLock"/> is an entry point for acquiring distributed lock.</para>
-    /// <para>See <see cref="AcquireAsync"/> and <see cref="DistributedLockToken"/> for details.</para>
-    /// </summary>
+    /// <inheritdoc/>
     [PublicAPI]
-    public class DistributedLock
+    public class DistributedLock : IDistributedLock
     {
         private readonly IZooKeeperClient client;
         private readonly ILog log;
@@ -38,14 +33,8 @@ namespace Vostok.ZooKeeper.Recipes
             lockData = NodeDataHelper.GetNodeData();
         }
 
-        /// <summary>
-        /// <para>Tries to acquire distributed lock.</para>
-        /// <para>Returns null, if timeout expired.</para>
-        /// <para>Otherwise, returns <see cref="DistributedLockToken"/> that should be disposed after use.</para>
-        /// <para>Throws an exception if cancellation has been requested, or non-retryable error has occured.</para>
-        /// </summary>
-        [CanBeNull]
-        public async Task<DistributedLockToken> TryAcquireAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
+        /// <inheritdoc/>
+        public async Task<IDistributedLockToken> TryAcquireAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
         {
             using (var timeoutCancellation = new CancellationTokenSource(timeout))
             using (var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCancellation.Token))
@@ -66,13 +55,8 @@ namespace Vostok.ZooKeeper.Recipes
             return null;
         }
 
-        /// <summary>
-        /// <para>Acquires distributed lock.</para>
-        /// <para>Returns <see cref="DistributedLockToken"/> that should be disposed after use.</para>
-        /// <para>Throws an exception if cancellation has been requested, or non-retryable error has occured.</para>
-        /// </summary>
-        [NotNull]
-        public async Task<DistributedLockToken> AcquireAsync(CancellationToken cancellationToken = default)
+        /// <inheritdoc/>
+        public async Task<IDistributedLockToken> AcquireAsync(CancellationToken cancellationToken = default)
         {
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -85,7 +69,7 @@ namespace Vostok.ZooKeeper.Recipes
             throw new OperationCanceledException($"Lock '{lockFolder}' acqure has been canceled.");
         }
 
-        private async Task<DistributedLockToken> AcquireOnceAsync(CancellationToken cancellationToken)
+        private async Task<IDistributedLockToken> AcquireOnceAsync(CancellationToken cancellationToken)
         {
             log.Info("Acquiring lock..");
 

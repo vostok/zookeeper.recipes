@@ -1,23 +1,16 @@
 ﻿using System;
 using System.Threading.Tasks;
-using JetBrains.Annotations;
 using Vostok.Commons.Threading;
 using Vostok.Logging.Abstractions;
 using Vostok.Logging.Context;
 using Vostok.ZooKeeper.Client.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Request;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Result;
-using Vostok.ZooKeeper.Recipes.Helpers;
 
-namespace Vostok.ZooKeeper.Recipes
+namespace Vostok.ZooKeeper.Recipes.Helpers
 {
-    /// <summary>
-    /// <para>Represents a distributed lock token.</para>
-    /// <para>Should be periodically checked, whether or not this lock token is still alive, by calling <see cref="IsAcquired"/>.</para>
-    /// <para>Call <see cref="Dispose"/> to release lock.</para>
-    /// </summary>
-    [PublicAPI]
-    public class DistributedLockToken : IDisposable
+    /// <inheritdoc/>
+    internal class DistributedLockToken : IDistributedLockToken
     {
         private readonly IZooKeeperClient client;
         private readonly string path;
@@ -48,15 +41,10 @@ namespace Vostok.ZooKeeper.Recipes
                 });
         }
 
-        /// <summary>
-        /// <para>Returns whether or not this lock token is still alive.</para>
-        /// </summary>
+        /// <inheritdoc/>
         public bool IsAcquired => !disposed;
 
-        /// <summary>
-        /// <para>Releases lock.</para>
-        /// <para>Throws an exception if non-retryable error has occured.</para>
-        /// </summary>
+        /// <inheritdoc/>
         public void Dispose()
         {
             using (new OperationContextToken(logContextToken))

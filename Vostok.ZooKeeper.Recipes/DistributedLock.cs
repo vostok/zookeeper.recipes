@@ -71,33 +71,45 @@ namespace Vostok.ZooKeeper.Recipes
 
         private async Task<IDistributedLockToken> AcquireOnceAsync(CancellationToken cancellationToken)
         {
-            log.Info("Acquiring lock..");
-
-            var create = await client.CreateProtectedAsync(
-                    new CreateRequest(lockPath, CreateMode.EphemeralSequential)
-                    {
-                        Data = lockData
-                    },
-                    log)
-                .ConfigureAwait(false);
-
-            if (!create.IsSuccessful)
-                throw new Exception("Failed to create lock node.", create.Exception);
-
-            if (await ZooKeeperNodeHelper.WaitForLeadershipAsync(client, create.NewPath, log, cancellationToken).ConfigureAwait(false))
+            var lockId = Guid.NewGuid();
+            var logToken = new OperationContextToken($"Lock-{lockId.ToString("N").Substring(0, 8)}");
+            
+            try
             {
-                log.Info("Lock with path '{Path}' was successfully acquired.", create.NewPath);
+                log.Info("Acquiring lock..");
 
-                return new DistributedLockToken(client, create.NewPath, log);
+                var create = await client.CreateProtectedAsync(
+                        new CreateRequest(lockPath, CreateMode.EphemeralSequential)
+                        {
+                            Data = lockData
+                        },
+                        log,
+                        lockId)
+                    .ConfigureAwait(false);
+
+                if (!create.IsSuccessful)
+                    throw new Exception("Failed to create lock node.", create.Exception);
+
+                if (await ZooKeeperNodeHelper.WaitForLeadershipAsync(client, create.NewPath, log, cancellationToken).ConfigureAwait(false))
+                {
+                    log.Info("Lock with path '{Path}' was successfully acquired.", create.NewPath);
+
+                    return new DistributedLockToken(client, create.NewPath, logToken, log);
+                }
+
+                log.Info("Lock with path '{Path}' was not acquired.", create.NewPath);
+                var delete = await client.DeleteProtectedAsync(new DeleteRequest(create.NewPath), log).ConfigureAwait(false);
+
+                if (!delete.IsSuccessful)
+                    throw new Exception("Failed to delete lock node.", delete.Exception);
+
+                return null;
             }
-
-            log.Info("Lock with path '{Path}' was not acquired.", create.NewPath);
-            var delete = await client.DeleteProtectedAsync(new DeleteRequest(create.NewPath), log).ConfigureAwait(false);
-
-            if (!delete.IsSuccessful)
-                throw new Exception("Failed to delete lock node.", delete.Exception);
-
-            return null;
+            catch
+            {
+                logToken.Dispose();
+                throw;
+            }
         }
     }
 }

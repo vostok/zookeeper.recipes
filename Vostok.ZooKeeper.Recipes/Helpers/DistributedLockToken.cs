@@ -14,17 +14,17 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
     {
         private readonly IZooKeeperClient client;
         private readonly string path;
+        private readonly OperationContextToken logToken;
         private readonly ILog log;
-        private readonly string logContextToken;
         private readonly AtomicBoolean disposed = false;
         private readonly TaskCompletionSource<DeleteResult> deleteResult = new TaskCompletionSource<DeleteResult>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        internal DistributedLockToken(IZooKeeperClient client, string path, ILog log)
+        internal DistributedLockToken(IZooKeeperClient client, string path, OperationContextToken logToken, ILog log)
         {
             this.client = client;
             this.path = path;
+            this.logToken = logToken;
             this.log = log;
-            logContextToken = ZooKeeperPath.GetParentPath(path) ?? "";
 
             Task.Run(
                 async () =>
@@ -34,8 +34,11 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
                         .ContinueWith(
                             _ =>
                             {
-                                log.Info("Lost a lock with path '{Path}'.", path);
-                                Dispose();
+                                if (!disposed)
+                                {
+                                    log.Info("Lost a lock with path '{Path}'.", path);
+                                    Dispose();
+                                }
                             })
                         .ConfigureAwait(false);
                 });
@@ -47,25 +50,25 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
         /// <inheritdoc/>
         public void Dispose()
         {
-            using (new OperationContextToken(logContextToken))
+            if (disposed.TrySetTrue())
             {
-                if (disposed.TrySetTrue())
-                {
-                    log.Info("Releasing a lock with path '{Path}'.", path);
+                log.Info("Releasing a lock with path '{Path}'.", path);
 
-                    var delete = client.DeleteProtectedAsync(new DeleteRequest(path), log).GetAwaiter().GetResult();
-                    deleteResult.TrySetResult(delete);
-                    if (!delete.IsSuccessful)
-                        throw new Exception("Failed to delete lock node.", delete.Exception);
+                var delete = client.DeleteProtectedAsync(new DeleteRequest(path), log).GetAwaiter().GetResult();
+                deleteResult.TrySetResult(delete);
+                if (!delete.IsSuccessful)
+                    throw new Exception("Failed to delete lock node.", delete.Exception);
 
-                    log.Info("Lock with path '{Path}' successfully released.", path);
-                }
-                else
-                {
-                    var delete = deleteResult.Task.GetAwaiter().GetResult();
-                    if (!delete.IsSuccessful)
-                        throw new Exception("Failed to delete lock node.", delete.Exception);
-                }
+                log.Info("Lock with path '{Path}' successfully released.", path);
+
+                // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
+                logToken.Dispose();
+            }
+            else
+            {
+                var delete = deleteResult.Task.GetAwaiter().GetResult();
+                if (!delete.IsSuccessful)
+                    throw new Exception("Failed to delete lock node.", delete.Exception);
             }
         }
     }

@@ -6,6 +6,7 @@ using FluentAssertions;
 using FluentAssertions.Extensions;
 using NUnit.Framework;
 using Vostok.Commons.Testing;
+using Vostok.Logging.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions;
 
 // ReSharper disable AccessToDisposedClosure
@@ -48,6 +49,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests
                 {
                     Interlocked.Increment(ref working).Should().Be(1);
 
+                    Log.Info("Making some work..");
                     await Task.Delay(10.Milliseconds());
 
                     Interlocked.Add(ref counter, i);

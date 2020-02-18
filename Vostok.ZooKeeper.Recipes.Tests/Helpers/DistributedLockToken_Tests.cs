@@ -3,12 +3,13 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using NUnit.Framework;
 using Vostok.Commons.Testing;
+using Vostok.Logging.Context;
 using Vostok.ZooKeeper.Client.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Request;
 using Vostok.ZooKeeper.Recipes.Helpers;
 
-namespace Vostok.ZooKeeper.Recipes.Tests
+namespace Vostok.ZooKeeper.Recipes.Tests.Helpers
 {
     [TestFixture]
     internal class DistributedLockToken_Tests : TestsBase
@@ -22,7 +23,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests
             created.IsSuccessful.Should().BeTrue();
             ZooKeeperClient.Exists(created.NewPath).Exists.Should().BeTrue();
 
-            var token = new DistributedLockToken(ZooKeeperClient, created.NewPath, Log);
+            var token = new DistributedLockToken(ZooKeeperClient, created.NewPath, new OperationContextToken(),  Log);
             token.IsAcquired.Should().BeTrue();
             ZooKeeperClient.Exists(created.NewPath).Exists.Should().BeTrue();
 
@@ -39,7 +40,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests
             created.IsSuccessful.Should().BeTrue();
             ZooKeeperClient.Exists(created.NewPath).Exists.Should().BeTrue();
 
-            var token = new DistributedLockToken(ZooKeeperClient, created.NewPath, Log);
+            var token = new DistributedLockToken(ZooKeeperClient, created.NewPath, new OperationContextToken(), Log);
             token.IsAcquired.Should().BeTrue();
             ZooKeeperClient.Exists(created.NewPath).Exists.Should().BeTrue();
 

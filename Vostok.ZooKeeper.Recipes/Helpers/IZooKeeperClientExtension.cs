@@ -21,9 +21,10 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
         /// <para>This node will be deleted, before new create attempt.</para>
         /// <para>Check returned <see cref="CreateResult"/> to see if operation was successful.</para>
         /// </summary>
-        public static async Task<CreateResult> CreateProtectedAsync([NotNull] this IZooKeeperClient client, [NotNull] CreateRequest request, [NotNull] ILog log)
+        public static async Task<CreateResult> CreateProtectedAsync([NotNull] this IZooKeeperClient client, [NotNull] CreateRequest request, [NotNull] ILog log, Guid? lockId = null)
         {
-            var protectedPath = request.CreateMode.IsSequential() ? $"{request.Path}-{Guid.NewGuid():N}-" : $"{request.Path}-{Guid.NewGuid():N}";
+            lockId = lockId ?? Guid.NewGuid();
+            var protectedPath = request.CreateMode.IsSequential() ? $"{request.Path}-{lockId:N}-" : $"{request.Path}-{lockId:N}";
             request = request.WithPath(protectedPath);
 
             log.Info("Creating a protected node with request '{Request}'..", request);

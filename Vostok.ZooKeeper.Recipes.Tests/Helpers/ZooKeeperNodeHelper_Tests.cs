@@ -12,7 +12,14 @@ namespace Vostok.ZooKeeper.Recipes.Tests.Helpers
 {
     internal class ZooKeeperNodeHelper_Tests : TestsBase
     {
+        private readonly string folder = "/helper";
         private readonly string prefix = "/helper/prefix";
+
+        [SetUp]
+        public new void SetUp()
+        {
+            ZooKeeperClient.Delete(folder);
+        }
 
         [Test]
         public async Task WaitForLeadershipAsync_should_works_correctly()

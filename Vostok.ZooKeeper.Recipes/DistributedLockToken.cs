@@ -47,6 +47,9 @@ namespace Vostok.ZooKeeper.Recipes
                 });
         }
 
+        /// <summary>
+        /// <para>Returns whether or not this lock token is still alive.</para>
+        /// </summary>
         public bool IsAcquired => !disposed;
 
         /// <summary>

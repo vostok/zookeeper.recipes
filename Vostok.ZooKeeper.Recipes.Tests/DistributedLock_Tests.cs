@@ -24,7 +24,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests
         }
 
         [Test]
-        public async Task Should_works_alone()
+        public async Task AcquireAsync_should_works_alone()
         {
             var @lock = new DistributedLock(ZooKeeperClient, new DistributedLockSettings(folder), Log);
 
@@ -36,7 +36,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests
         }
 
         [Test]
-        public async Task Should_works_concurrently()
+        public async Task AcquireAsync_should_works_concurrently()
         {
             var @lock = new DistributedLock(ZooKeeperClient, new DistributedLockSettings(folder), Log);
             var counter = 0;
@@ -69,7 +69,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests
         }
 
         [Test]
-        public void Should_wait_connected()
+        public void AcquireAsync_should_wait_connected()
         {
             var @lock = new DistributedLock(ZooKeeperClient, new DistributedLockSettings(folder), Log);
 
@@ -88,7 +88,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests
         }
 
         [Test]
-        public async Task Should_pass_lock_on_session_expire()
+        public async Task AcquireAsync_should_pass_lock_on_session_expire()
         {
             using (var localClient = CreateZooKeeperClient())
             {
@@ -120,7 +120,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests
         }
 
         [Test]
-        public void Should_throw_on_cancel()
+        public void AcquireAsync_should_throw_on_cancel()
         {
             var @lock = new DistributedLock(ZooKeeperClient, new DistributedLockSettings(folder), Log);
 
@@ -141,7 +141,45 @@ namespace Vostok.ZooKeeper.Recipes.Tests
         }
 
         [Test]
-        public void Should_throw_on_client_dispose_while_acquire()
+        public void TryAcquireAsync_should_throw_on_cancel()
+        {
+            var @lock = new DistributedLock(ZooKeeperClient, new DistributedLockSettings(folder), Log);
+
+            var cts = new CancellationTokenSource();
+            var task1 = @lock.AcquireAsync(cts.Token);
+            var token1 = task1.ShouldCompleteIn(DefaultTimeout);
+
+            var task2 = @lock.TryAcquireAsync(1.Hours(), cts.Token);
+            task2.ShouldNotCompleteIn(1.Seconds());
+
+            cts.Cancel();
+
+            task2.ShouldCompleteWithErrorIn<OperationCanceledException>(DefaultTimeout);
+
+            token1.Dispose();
+
+            CheckNoLocks();
+        }
+
+        [Test]
+        public void TryAcquireAsync_should_return_null_on_timeout()
+        {
+            var @lock = new DistributedLock(ZooKeeperClient, new DistributedLockSettings(folder), Log);
+
+            var cts = new CancellationTokenSource();
+            var task1 = @lock.AcquireAsync(cts.Token);
+            var token1 = task1.ShouldCompleteIn(DefaultTimeout);
+
+            var task2 = @lock.TryAcquireAsync(1.Seconds(), cts.Token);
+            task2.ShouldCompleteIn(2.Seconds()).Should().BeNull();
+
+            token1.Dispose();
+
+            CheckNoLocks();
+        }
+
+        [Test]
+        public void AcquireAsync_should_throw_on_client_dispose_while_acquire()
         {
             var localClient = CreateZooKeeperClient();
 
@@ -153,7 +191,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests
         }
 
         [Test]
-        public void Should_throw_on_client_dispose_while_dispose()
+        public void Token_dispose_should_throw_on_client_dispose()
         {
             var localClient = CreateZooKeeperClient();
 

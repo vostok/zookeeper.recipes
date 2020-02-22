@@ -18,26 +18,27 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
         /// </summary>
         public static async Task<bool> WaitForLeadershipAsync([NotNull] IZooKeeperClient client, [NotNull] string path, [NotNull] ILog log, CancellationToken cancellationToken = default)
         {
-            log.Info("Waiting while a node with path '{Path}' becomes a leader..", path);
+            log.Info("Waiting for the node with path '{Path}' to become the lock holder..", path);
 
             var parent = ZooKeeperPath.GetParentPath(path) ?? throw new Exception($"Node with path '{path}' has no parent.");
             var index = ZooKeeperPath.GetSequentialNodeIndex(path) ?? throw new Exception($"Node with path '{path}' has no index.");
 
+            // CR(iloktionov): What about checking cancellation inbetween operations?
             while (!cancellationToken.IsCancellationRequested)
             {
-                var exists = await client.ExistsAsync(path).ConfigureAwait(false);
-                if (exists.IsRetryableError())
+                var existsResult = await client.ExistsAsync(path).ConfigureAwait(false);
+                if (existsResult.IsRetriableError())
                     continue;
-                if (!exists.IsSuccessful || !exists.Exists)
+                if (!existsResult.IsSuccessful || !existsResult.Exists)
                     return false;
 
-                var children = await client.GetChildrenAsync(parent).ConfigureAwait(false);
-                if (children.IsRetryableError())
+                var childrenResult = await client.GetChildrenAsync(parent).ConfigureAwait(false);
+                if (childrenResult.IsRetriableError())
                     continue;
-                if (!children.IsSuccessful)
+                if (!childrenResult.IsSuccessful)
                     return false;
 
-                var (previousName, _) = children.ChildrenNames
+                var (previousName, _) = childrenResult.ChildrenNames
                     .Select(name => (name, index: ZooKeeperPath.GetSequentialNodeIndex(name)))
                     .Where(n => n.index.HasValue)
                     .Select(n => (n.name, index: n.index.Value))
@@ -80,12 +81,14 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
             {
                 foreach (var path in paths)
                 {
-                    var exists = await client.ExistsAsync(new ExistsRequest(path) {Watcher = watcher, IgnoreWatchersCache = true}).ConfigureAwait(false);
-                    if (!exists.IsSuccessful || !exists.Exists)
+                    // CR(iloktionov): Check cancellation token on each iteration.
+                    var existsResult = await client.ExistsAsync(new ExistsRequest(path) {Watcher = watcher, IgnoreWatchersCache = true}).ConfigureAwait(false);
+                    if (!existsResult.IsSuccessful || !existsResult.Exists)
                         return;
                 }
 
-                log.Info("Waiting until a nodes with paths '{Path}' disappear..", string.Join(", ", paths));
+                log.Info("Waiting until one of the nodes with following paths disappears: {Paths}.", paths);
+                
                 await wait.Task.SilentlyContinue().ConfigureAwait(false);
             }
         }

@@ -14,20 +14,20 @@ namespace Vostok.ZooKeeper.Recipes
     public interface IDistributedLock
     {
         /// <summary>
-        /// <para>Tries to acquire distributed lock.</para>
-        /// <para>Returns null, if timeout expired.</para>
-        /// <para>Otherwise, returns <see cref="DistributedLockToken"/> that should be disposed after use.</para>
-        /// <para>Throws an exception if cancellation has been requested, or non-retryable error has occured.</para>
+        /// <para>Attempts to acquire a distributed lock asynchronously.</para>
+        /// <para>Returns null if given <paramref name="timeout"/> is insufficient to obtain the lock.</para>
+        /// <para>Otherwise, returns a <see cref="DistributedLockToken"/> that should be disposed after use.</para>
+        /// <para>Throws an exception in the event of cancellation or a non-retriable error.</para>
         /// </summary>
-        [CanBeNull]
+        [ItemCanBeNull]
         Task<IDistributedLockToken> TryAcquireAsync(TimeSpan timeout, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// <para>Acquires distributed lock.</para>
-        /// <para>Returns <see cref="DistributedLockToken"/> that should be disposed after use.</para>
-        /// <para>Throws an exception if cancellation has been requested, or non-retryable error has occured.</para>
+        /// <para>Acquires a distributed lock asynchronously.</para>
+        /// <para>Returns a <see cref="DistributedLockToken"/> that should be disposed after use.</para>
+        /// <para>Throws an exception in the event of cancellation or a non-retriable error.</para>
         /// </summary>
-        [NotNull]
+        [ItemNotNull]
         Task<IDistributedLockToken> AcquireAsync(CancellationToken cancellationToken = default);
     }
 }

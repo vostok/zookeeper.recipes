@@ -5,11 +5,12 @@ using Vostok.ZooKeeper.Client.Abstractions;
 namespace Vostok.ZooKeeper.Recipes
 {
     /// <summary>
-    /// Represents a <see cref="DistributedLock"/> settings.
+    /// Represents the configuration of a <see cref="DistributedLock"/> instance.
     /// </summary>
     [PublicAPI]
     public class DistributedLockSettings
     {
+        /// <param name="path">See <see cref="Path"/>.</param>
         public DistributedLockSettings([NotNull] string path)
         {
             Path = path ?? throw new ArgumentNullException(nameof(path));
@@ -17,6 +18,8 @@ namespace Vostok.ZooKeeper.Recipes
             if (path == ZooKeeperPath.Root)
                 throw new ArgumentException($"Distributed lock folder '{path}' can't be root.");
         }
+
+        // CR(iloktionov): Summary looks unclear. What's a path to nodes (plural)? Is this a path of a designated lock parent node under which lock contenders create their ephemeral nodes?
 
         /// <summary>
         /// ZooKeeper path to lock nodes.

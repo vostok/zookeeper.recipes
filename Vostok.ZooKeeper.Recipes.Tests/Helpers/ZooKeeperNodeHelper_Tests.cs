@@ -22,7 +22,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests.Helpers
         }
 
         [Test]
-        public async Task WaitForLeadershipAsync_should_works_correctly()
+        public async Task WaitForLeadershipAsync_should_work_correctly()
         {
             var node1 = await ZooKeeperClient.CreateAsync(prefix, CreateMode.PersistentSequential);
             var node2 = await ZooKeeperClient.CreateAsync(prefix, CreateMode.PersistentSequential);
@@ -76,7 +76,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests.Helpers
         }
 
         [Test]
-        public async Task WaitForLeadershipAsync_should_be_cancellable()
+        public async Task WaitForLeadershipAsync_should_be_cancelable()
         {
             var source = new CancellationTokenSource();
 
@@ -124,7 +124,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests.Helpers
         }
 
         [Test]
-        public async Task WaitForDisappearanceAsync_should_be_cancellable()
+        public async Task WaitForDisappearanceAsync_should_be_cancelable()
         {
             var source = new CancellationTokenSource();
 

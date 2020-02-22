@@ -25,7 +25,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests
         }
 
         [Test]
-        public async Task AcquireAsync_should_works_alone()
+        public async Task AcquireAsync_should_work_alone()
         {
             var @lock = new DistributedLock(ZooKeeperClient, new DistributedLockSettings(folder), Log);
 
@@ -37,7 +37,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests
         }
 
         [Test]
-        public async Task AcquireAsync_should_works_concurrently()
+        public async Task AcquireAsync_should_work_concurrently()
         {
             var @lock = new DistributedLock(ZooKeeperClient, new DistributedLockSettings(folder), Log);
             var counter = 0;
@@ -74,7 +74,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests
         }
 
         [Test]
-        public void AcquireAsync_should_wait_connected()
+        public void AcquireAsync_should_wait_for_a_connection()
         {
             var @lock = new DistributedLock(ZooKeeperClient, new DistributedLockSettings(folder), Log);
 

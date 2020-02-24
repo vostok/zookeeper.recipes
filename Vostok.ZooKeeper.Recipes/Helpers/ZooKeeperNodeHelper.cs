@@ -23,19 +23,18 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
             var parent = ZooKeeperPath.GetParentPath(path) ?? throw new Exception($"Node with path '{path}' has no parent.");
             var index = ZooKeeperPath.GetSequentialNodeIndex(path) ?? throw new Exception($"Node with path '{path}' has no index.");
 
-            // CR(iloktionov): What about checking cancellation inbetween operations?
             while (!cancellationToken.IsCancellationRequested)
             {
                 var existsResult = await client.ExistsAsync(path).ConfigureAwait(false);
                 if (existsResult.IsRetriableError())
                     continue;
-                if (!existsResult.IsSuccessful || !existsResult.Exists)
+                if (!existsResult.IsSuccessful || !existsResult.Exists || cancellationToken.IsCancellationRequested)
                     return false;
 
                 var childrenResult = await client.GetChildrenAsync(parent).ConfigureAwait(false);
                 if (childrenResult.IsRetriableError())
                     continue;
-                if (!childrenResult.IsSuccessful)
+                if (!childrenResult.IsSuccessful || cancellationToken.IsCancellationRequested)
                     return false;
 
                 var (previousName, _) = childrenResult.ChildrenNames
@@ -81,14 +80,13 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
             {
                 foreach (var path in paths)
                 {
-                    // CR(iloktionov): Check cancellation token on each iteration.
                     var existsResult = await client.ExistsAsync(new ExistsRequest(path) {Watcher = watcher, IgnoreWatchersCache = true}).ConfigureAwait(false);
-                    if (!existsResult.IsSuccessful || !existsResult.Exists)
+                    if (!existsResult.IsSuccessful || !existsResult.Exists || cancellationToken.IsCancellationRequested)
                         return;
                 }
 
                 log.Info("Waiting until one of the nodes with following paths disappears: {Paths}.", paths);
-                
+
                 await wait.Task.SilentlyContinue().ConfigureAwait(false);
             }
         }

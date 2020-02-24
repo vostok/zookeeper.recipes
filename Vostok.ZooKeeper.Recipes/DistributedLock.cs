@@ -34,10 +34,6 @@ namespace Vostok.ZooKeeper.Recipes
 
             lockFolder = settings.Path;
             lockPath = ZooKeeperPath.Combine(lockFolder, "lock");
-
-            // CR(iloktionov): What's the purpose of this data? To be human-readable for debug purposes or to be machine-readable?
-            // If it's the first one, then why is it serialized in binary format?
-            // If it's the last one, then what consumers for it do we know of?
             lockData = NodeDataHelper.GetNodeData();
         }
 

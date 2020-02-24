@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using JetBrains.Annotations;
 using Vostok.Commons.Binary;
 using Vostok.Commons.Environment;
@@ -7,6 +10,9 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
 {
     internal static class NodeDataHelper
     {
+        private const string KeyValueDelimiter = " = ";
+        private const string LinesDelimiter = "\n";
+
         public static byte[] GetNodeData()
         {
             return Serialize(
@@ -20,25 +26,31 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
         }
 
         [NotNull]
-        public static IReadOnlyDictionary<string, string> Deserialize([CanBeNull] byte[] data)
+        private static byte[] Serialize([CanBeNull] IReadOnlyDictionary<string, string> properties)
         {
-            if (data == null || data.Length == 0)
-                return new Dictionary<string, string>();
-
-            var reader = new BinaryBufferReader(data, 0);
-
-            return reader.ReadDictionary(r => r.ReadString(), r => r.ReadString());
+            properties = properties ?? new Dictionary<string, string>();
+            var content = string.Join(
+                LinesDelimiter,
+                properties
+                    .Where(item => !string.IsNullOrEmpty(item.Value))
+                    .Select(item => $"{item.Key}{KeyValueDelimiter}{item.Value}".Replace(LinesDelimiter, " ")));
+            return Encoding.UTF8.GetBytes(content);
         }
 
-        private static byte[] Serialize([CanBeNull] IReadOnlyDictionary<string, string> dictionary)
+        [NotNull]
+        public static Dictionary<string, string> Deserialize([CanBeNull] byte[] data)
         {
-            var writer = new BinaryBufferWriter(0);
-            writer.WriteDictionary(
-                dictionary ?? new Dictionary<string, string>(),
-                (w, k) => w.WriteWithLength(k),
-                (w, v) => w.WriteWithLength(v));
-
-            return writer.Buffer;
+            var content = Encoding.UTF8.GetString(data ?? new byte[0]);
+            var lines = content.Split(new[] { LinesDelimiter }, StringSplitOptions.RemoveEmptyEntries);
+            return lines
+                .Where(line => !string.IsNullOrEmpty(line))
+                .Select(line => line.Split(new[] { KeyValueDelimiter }, 2, StringSplitOptions.RemoveEmptyEntries))
+                .Where(lineParts => lineParts.Length == 2)
+                .ToDictionary(
+                    lineParts => lineParts[0],
+                    lineParts => lineParts[1],
+                    StringComparer.OrdinalIgnoreCase
+                );
         }
     }
 }

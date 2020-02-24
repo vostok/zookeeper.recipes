@@ -123,7 +123,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests.Helpers
         public async Task DeleteProtectedAsync_should_delete_all_sequential_nodes()
         {
             var id = Guid.NewGuid();
-            
+
             var created1 = await ZooKeeperClient.CreateProtectedAsync(new CreateRequest(prefix, CreateMode.PersistentSequential), Log, id);
             created1.IsSuccessful.Should().BeTrue();
             ZooKeeperClient.Exists(created1.NewPath).Exists.Should().BeTrue();

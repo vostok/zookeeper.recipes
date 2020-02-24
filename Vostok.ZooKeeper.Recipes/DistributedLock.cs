@@ -45,10 +45,11 @@ namespace Vostok.ZooKeeper.Recipes
             using (var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCancellation.Token))
             {
                 var linkedCancellationToken = linkedCancellation.Token;
+                var lockId = Guid.NewGuid();
 
                 while (!linkedCancellationToken.IsCancellationRequested)
                 {
-                    var token = await AcquireOnceAsync(linkedCancellationToken).ConfigureAwait(false);
+                    var token = await AcquireOnceAsync(linkedCancellationToken, lockId).ConfigureAwait(false);
                     if (token != null)
                         return token;
                 }
@@ -63,9 +64,11 @@ namespace Vostok.ZooKeeper.Recipes
         /// <inheritdoc/>
         public async Task<IDistributedLockToken> AcquireAsync(CancellationToken cancellationToken = default)
         {
+            var lockId = Guid.NewGuid();
+            
             while (!cancellationToken.IsCancellationRequested)
             {
-                var token = await AcquireOnceAsync(cancellationToken).ConfigureAwait(false);
+                var token = await AcquireOnceAsync(cancellationToken, lockId).ConfigureAwait(false);
                 if (token != null)
                     return token;
             }
@@ -73,10 +76,8 @@ namespace Vostok.ZooKeeper.Recipes
             throw new OperationCanceledException($"Lock '{lockFolder}' acquisition has been canceled.");
         }
 
-        private async Task<IDistributedLockToken> AcquireOnceAsync(CancellationToken cancellationToken)
+        private async Task<IDistributedLockToken> AcquireOnceAsync(CancellationToken cancellationToken, Guid lockId)
         {
-            // CR(iloktionov): Is this really the "lock" id, considering that we may cycle through several of these during a single acquire attempt?
-            var lockId = Guid.NewGuid();
             var logTokenValue = $"Lock-{lockId.ToString("N").Substring(0, 8)}";
             var logToken = new OperationContextToken(logTokenValue);
 

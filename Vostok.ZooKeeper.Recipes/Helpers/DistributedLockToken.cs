@@ -62,10 +62,7 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
 
                 var delete = client.DeleteProtectedAsync(new DeleteRequest(path), log).GetAwaiter().GetResult();
                 deleteResult.TrySetResult(delete);
-
-                // CR(iloktionov): EnsureSuccess()?
-                if (!delete.IsSuccessful)
-                    throw new Exception("Failed to delete lock node.", delete.Exception);
+                delete.EnsureSuccess();
 
                 log.Info("Lock with path '{Path}' successfully released.", path);
 
@@ -74,10 +71,8 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
             }
             else
             {
-                // CR(iloktionov): EnsureSuccess()?
                 var delete = deleteResult.Task.GetAwaiter().GetResult();
-                if (!delete.IsSuccessful)
-                    throw new Exception("Failed to delete lock node.", delete.Exception);
+                delete.EnsureSuccess();
             }
         }
     }

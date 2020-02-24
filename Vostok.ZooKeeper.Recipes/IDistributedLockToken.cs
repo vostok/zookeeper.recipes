@@ -1,6 +1,5 @@
 ﻿using System;
 using JetBrains.Annotations;
-using Vostok.Logging.Context;
 
 namespace Vostok.ZooKeeper.Recipes
 {
@@ -13,17 +12,15 @@ namespace Vostok.ZooKeeper.Recipes
     public interface IDistributedLockToken : IDisposable
     {
         /// <summary>
+        /// <para>Lock token identifier.</para>
+        /// </summary>
+        Guid Id { get; }
+
+        /// <summary>
         /// <para>Returns whether or not the lock represented by this token is still held.</para>
         /// <para>Value of this property may change from <c>true</c> to <c>false</c> anytime.</para>
         /// <para>A <c>false</c> value may also indicate a false negative (in cases such as connection loss).</para>
         /// </summary>
         bool IsAcquired { get; }
-
-        // CR(iloktionov): I strongly suggest to remove this. We could provide a string token id property instead, but this looks like an assumption made for the user.
-
-        /// <summary>
-        /// Creates new <see cref="OperationContextToken"/> with current lock id.
-        /// </summary>
-        IDisposable GetContextToken();
     }
 }

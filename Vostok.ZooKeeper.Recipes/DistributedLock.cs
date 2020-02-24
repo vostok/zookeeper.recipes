@@ -66,11 +66,11 @@ namespace Vostok.ZooKeeper.Recipes
         /// <inheritdoc/>
         public async Task<IDistributedLockToken> AcquireAsync(CancellationToken cancellationToken = default)
         {
-            var lockId = Guid.NewGuid();
+            var tokenId = Guid.NewGuid();
 
             while (!cancellationToken.IsCancellationRequested)
             {
-                var token = await AcquireOnceAsync(cancellationToken, lockId).ConfigureAwait(false);
+                var token = await AcquireOnceAsync(cancellationToken, tokenId).ConfigureAwait(false);
                 if (token != null)
                     return token;
             }
@@ -78,10 +78,9 @@ namespace Vostok.ZooKeeper.Recipes
             throw new OperationCanceledException($"Lock '{lockFolder}' acquisition has been canceled.");
         }
 
-        private async Task<IDistributedLockToken> AcquireOnceAsync(CancellationToken cancellationToken, Guid lockId)
+        private async Task<IDistributedLockToken> AcquireOnceAsync(CancellationToken cancellationToken, Guid tokenId)
         {
-            var logTokenValue = $"Lock-{lockId.ToString("N").Substring(0, 8)}";
-            var logToken = new OperationContextToken(logTokenValue);
+            var logToken = tokenId.CreateOperationContextToken();
 
             try
             {
@@ -93,7 +92,7 @@ namespace Vostok.ZooKeeper.Recipes
                             Data = lockData
                         },
                         log,
-                        lockId)
+                        tokenId)
                     .ConfigureAwait(false);
                 createResult.EnsureSuccess();
 
@@ -101,7 +100,7 @@ namespace Vostok.ZooKeeper.Recipes
                 {
                     log.Info("Lock token with path '{Path}' was successfully acquired.", createResult.NewPath);
 
-                    return new DistributedLockToken(client, createResult.NewPath, logToken, logTokenValue, log);
+                    return new DistributedLockToken(client, tokenId, createResult.NewPath, logToken, log);
                 }
 
                 var deleteResult = await client.DeleteProtectedAsync(new DeleteRequest(createResult.NewPath), log).ConfigureAwait(false);

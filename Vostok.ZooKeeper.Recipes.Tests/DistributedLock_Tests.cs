@@ -8,6 +8,7 @@ using NUnit.Framework;
 using Vostok.Commons.Testing;
 using Vostok.Logging.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions;
+using Vostok.ZooKeeper.Recipes.Helpers;
 
 // ReSharper disable AccessToDisposedClosure
 
@@ -47,7 +48,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests
             {
                 using (var token = await @lock.AcquireAsync())
                 {
-                    using (token.GetContextToken())
+                    using (token.CreateOperationContextToken())
                     {
                         Interlocked.Increment(ref working).Should().Be(1);
 

@@ -37,8 +37,10 @@ namespace Vostok.ZooKeeper.Recipes
             lockData = NodeDataHelper.GetNodeData();
         }
 
-        // CR(iloktionov): Document the imprecise nature of timeout in this method (it can be significantly exceeded in case of ZK unavailability).
+        /// <summary>
         /// <inheritdoc/>
+        /// <para>Execution time of this method may significantly exceed given <paramref name="timeout"/> in case of ZooKeeper unavailability.</para>
+        /// </summary>
         public async Task<IDistributedLockToken> TryAcquireAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
         {
             using (var timeoutCancellation = new CancellationTokenSource(timeout))
@@ -65,7 +67,7 @@ namespace Vostok.ZooKeeper.Recipes
         public async Task<IDistributedLockToken> AcquireAsync(CancellationToken cancellationToken = default)
         {
             var lockId = Guid.NewGuid();
-            
+
             while (!cancellationToken.IsCancellationRequested)
             {
                 var token = await AcquireOnceAsync(cancellationToken, lockId).ConfigureAwait(false);
@@ -93,10 +95,7 @@ namespace Vostok.ZooKeeper.Recipes
                         log,
                         lockId)
                     .ConfigureAwait(false);
-
-                // CR(iloktionov): Does this convey more information than simple createResult.EnsureSuccess()?
-                if (!createResult.IsSuccessful)
-                    throw new Exception("Failed to create lock node.", createResult.Exception);
+                createResult.EnsureSuccess();
 
                 if (await ZooKeeperNodeHelper.WaitForLeadershipAsync(client, createResult.NewPath, log, cancellationToken).ConfigureAwait(false))
                 {
@@ -106,13 +105,8 @@ namespace Vostok.ZooKeeper.Recipes
                     return new DistributedLockToken(client, createResult.NewPath, logToken, logTokenValue, log);
                 }
 
-                // CR(iloktionov): What's the purpose of this log message?
-                log.Info("Lock with path '{Path}' was not acquired.", createResult.NewPath);
-
-                // CR(iloktionov): Does this convey more information than simple deleteResult.EnsureSuccess()?
                 var deleteResult = await client.DeleteProtectedAsync(new DeleteRequest(createResult.NewPath), log).ConfigureAwait(false);
-                if (!deleteResult.IsSuccessful)
-                    throw new Exception("Failed to delete lock node.", deleteResult.Exception);
+                deleteResult.EnsureSuccess();
 
                 return null;
             }

@@ -20,18 +20,16 @@ namespace Vostok.ZooKeeper.Recipes
     {
         private readonly IZooKeeperClient client;
         private readonly ILog log;
-        // CR(iloktionov): Remove unused field.
-        private readonly DistributedLockSettings settings;
         private readonly string lockFolder;
         private readonly string lockPath;
         private readonly byte[] lockData;
 
         public DistributedLock([NotNull] IZooKeeperClient client, [NotNull] DistributedLockSettings settings, [CanBeNull] ILog log = null)
         {
-            this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
-            // CR(iloktionov): I suggest to remove the WithOperationContext() call as it will very likely lead to duplicate decorators in most real apps.
+            if (settings == null)
+                throw new ArgumentNullException(nameof(settings));
             // CR(iloktionov): We should also probably let the user decide whether they want to see operation context or not.
-            this.log = (log ?? LogProvider.Get()).ForContext<DistributedLock>().WithOperationContext();
+            this.log = (log ?? LogProvider.Get()).ForContext<DistributedLock>();
             this.client = client ?? throw new ArgumentNullException(nameof(client));
 
             lockFolder = settings.Path;

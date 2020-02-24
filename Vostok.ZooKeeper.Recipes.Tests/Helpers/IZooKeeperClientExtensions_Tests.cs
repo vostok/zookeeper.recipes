@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using FluentAssertions;
 using FluentAssertions.Extensions;
 using NUnit.Framework;
@@ -116,6 +117,26 @@ namespace Vostok.ZooKeeper.Recipes.Tests.Helpers
             var deleted = await ZooKeeperClient.DeleteProtectedAsync(new DeleteRequest(created.NewPath), Log);
             deleted.IsSuccessful.Should().BeTrue();
             ZooKeeperClient.Exists(created.NewPath).Exists.Should().BeFalse();
+        }
+
+        [Test]
+        public async Task DeleteProtectedAsync_should_delete_all_sequential_nodes()
+        {
+            var id = Guid.NewGuid();
+            
+            var created1 = await ZooKeeperClient.CreateProtectedAsync(new CreateRequest(prefix, CreateMode.PersistentSequential), Log, id);
+            created1.IsSuccessful.Should().BeTrue();
+            ZooKeeperClient.Exists(created1.NewPath).Exists.Should().BeTrue();
+
+            var created2 = await ZooKeeperClient.CreateProtectedAsync(new CreateRequest(prefix, CreateMode.PersistentSequential), Log, id);
+            created2.IsSuccessful.Should().BeTrue();
+            ZooKeeperClient.Exists(created2.NewPath).Exists.Should().BeTrue();
+            created2.NewPath.Should().NotBe(created1.NewPath);
+
+            var deleted = await ZooKeeperClient.DeleteProtectedAsync(new DeleteRequest($"{prefix}-{id:N}"), Log);
+            deleted.IsSuccessful.Should().BeTrue();
+            ZooKeeperClient.Exists(created1.NewPath).Exists.Should().BeFalse();
+            ZooKeeperClient.Exists(created2.NewPath).Exists.Should().BeFalse();
         }
 
         [Test]

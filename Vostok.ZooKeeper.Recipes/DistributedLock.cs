@@ -29,6 +29,7 @@ namespace Vostok.ZooKeeper.Recipes
             if (settings == null)
                 throw new ArgumentNullException(nameof(settings));
             // CR(iloktionov): We should also probably let the user decide whether they want to see operation context or not.
+            // CR(kungurtsev): This is required for ZK operations debugging.
             this.log = (log ?? LogProvider.Get()).ForContext<DistributedLock>();
             this.client = client ?? throw new ArgumentNullException(nameof(client));
 

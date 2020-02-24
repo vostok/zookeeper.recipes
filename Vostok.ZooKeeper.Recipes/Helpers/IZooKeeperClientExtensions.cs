@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
@@ -53,11 +54,11 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
             log.Info("Deleting a protected node with path '{Path}'..", request.Path);
 
             var path = request.Path;
-            
+
             var parent = ZooKeeperPath.GetParentPath(path);
             if (parent == null)
                 return DeleteResult.Unsuccessful(ZooKeeperStatus.BadArguments, request.Path, new Exception($"Node with path '{path}' has no parent."));
-            
+
             var name = ZooKeeperPath.GetNodeName(path);
             if (name == null)
                 return DeleteResult.Unsuccessful(ZooKeeperStatus.BadArguments, request.Path, new Exception($"Node with path '{path}' has no name."));
@@ -67,20 +68,28 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
                 var childrenResult = await client.GetChildrenAsync(parent).ConfigureAwait(false);
                 if (childrenResult.IsRetriableError())
                     continue;
-                
+
                 if (!childrenResult.IsSuccessful)
                     return DeleteResult.Unsuccessful(childrenResult.Status, childrenResult.Path, childrenResult.Exception);
 
-                // CR(iloktionov): What if there's more than one due to false negatives?
-                var found = childrenResult.ChildrenNames.FirstOrDefault(c => c.StartsWith(name));
-                if (found == null)
+                var found = childrenResult.ChildrenNames.Where(c => c.StartsWith(name)).ToList();
+                if (!found.Any())
                     return DeleteResult.Unsuccessful(ZooKeeperStatus.NodeNotFound, path, null);
 
-                var deleteResult = await client.DeleteAsync(ZooKeeperPath.Combine(parent, found)).ConfigureAwait(false);
-                if (deleteResult.IsRetriableError())
+                var deleteResults = new List<DeleteResult>();
+                foreach (var foundName in found)
+                    deleteResults.Add(
+                        await client.DeleteAsync(ZooKeeperPath.Combine(parent, foundName)).ConfigureAwait(false));
+
+                var failedDeleteResult = deleteResults.FirstOrDefault(r => !r.IsSuccessful && !r.IsRetriableError());
+                if (failedDeleteResult != null)
+                    return failedDeleteResult;
+
+                var retriableResult = deleteResults.FirstOrDefault(r => !r.IsSuccessful && r.IsRetriableError());
+                if (retriableResult != null)
                     continue;
 
-                return deleteResult;
+                return deleteResults.First();
             }
         }
     }

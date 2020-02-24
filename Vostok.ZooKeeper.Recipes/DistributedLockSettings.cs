@@ -19,10 +19,8 @@ namespace Vostok.ZooKeeper.Recipes
                 throw new ArgumentException($"Distributed lock folder '{path}' can't be root.");
         }
 
-        // CR(iloktionov): Summary looks unclear. What's a path to nodes (plural)? Is this a path of a designated lock parent node under which lock contenders create their ephemeral nodes?
-
         /// <summary>
-        /// ZooKeeper path to lock nodes.
+        /// ZooKeeper path of a designated lock parent node under which lock contenders create their ephemeral nodes.
         /// </summary>
         [NotNull]
         public string Path { get; }

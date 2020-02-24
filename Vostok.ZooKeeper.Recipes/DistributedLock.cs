@@ -99,8 +99,7 @@ namespace Vostok.ZooKeeper.Recipes
 
                 if (await ZooKeeperNodeHelper.WaitForLeadershipAsync(client, createResult.NewPath, log, cancellationToken).ConfigureAwait(false))
                 {
-                    // CR(iloktionov): Is this really the lock path? Isn't it just the path to our not-so-meaningful participant node?
-                    log.Info("Lock with path '{Path}' was successfully acquired.", createResult.NewPath);
+                    log.Info("Lock token with path '{Path}' was successfully acquired.", createResult.NewPath);
 
                     return new DistributedLockToken(client, createResult.NewPath, logToken, logTokenValue, log);
                 }

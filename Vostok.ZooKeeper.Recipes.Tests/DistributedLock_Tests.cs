@@ -48,17 +48,14 @@ namespace Vostok.ZooKeeper.Recipes.Tests
             {
                 using (var token = await @lock.AcquireAsync())
                 {
-                    using (token.CreateOperationContextToken())
-                    {
-                        Interlocked.Increment(ref working).Should().Be(1);
+                    Interlocked.Increment(ref working).Should().Be(1);
 
-                        Log.Info("Making some work..");
-                        await Task.Delay(10.Milliseconds());
+                    Log.Info("Making some work..");
+                    await Task.Delay(10.Milliseconds());
 
-                        Interlocked.Add(ref counter, i);
+                    Interlocked.Add(ref counter, i);
 
-                        Interlocked.Decrement(ref working);
-                    }
+                    Interlocked.Decrement(ref working);
                 }
             }
 

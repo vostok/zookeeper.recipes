@@ -29,8 +29,7 @@ namespace Vostok.ZooKeeper.Recipes
         {
             if (settings == null)
                 throw new ArgumentNullException(nameof(settings));
-            // CR(iloktionov): We should also probably let the user decide whether they want to see operation context or not.
-            // CR(kungurtsev): This is required for ZK operations debugging.
+            
             this.log = (log ?? LogProvider.Get()).ForContext<DistributedLock>();
             this.client = client ?? throw new ArgumentNullException(nameof(client));
 
@@ -82,39 +81,29 @@ namespace Vostok.ZooKeeper.Recipes
 
         private async Task<IDistributedLockToken> AcquireOnceAsync(CancellationToken cancellationToken, Guid tokenId)
         {
-            var logToken = tokenId.CreateOperationContextToken();
+            log.Info("Acquiring lock with path '{Path}'..", lockFolder);
 
-            try
+            var createResult = await client.CreateProtectedAsync(
+                    new CreateRequest(lockPath, CreateMode.EphemeralSequential)
+                    {
+                        Data = lockData
+                    },
+                    log,
+                    tokenId)
+                .ConfigureAwait(false);
+            createResult.EnsureSuccess();
+
+            if (await ZooKeeperNodeHelper.WaitForLeadershipAsync(client, createResult.NewPath, log, cancellationToken).ConfigureAwait(false))
             {
-                log.Info("Acquiring lock..");
+                log.Info("Lock token with path '{Path}' was successfully acquired.", createResult.NewPath);
 
-                var createResult = await client.CreateProtectedAsync(
-                        new CreateRequest(lockPath, CreateMode.EphemeralSequential)
-                        {
-                            Data = lockData
-                        },
-                        log,
-                        tokenId)
-                    .ConfigureAwait(false);
-                createResult.EnsureSuccess();
-
-                if (await ZooKeeperNodeHelper.WaitForLeadershipAsync(client, createResult.NewPath, log, cancellationToken).ConfigureAwait(false))
-                {
-                    log.Info("Lock token with path '{Path}' was successfully acquired.", createResult.NewPath);
-
-                    return new DistributedLockToken(client, tokenId, createResult.NewPath, logToken, log);
-                }
-
-                var deleteResult = await client.DeleteProtectedAsync(new DeleteRequest(createResult.NewPath), log).ConfigureAwait(false);
-                deleteResult.EnsureSuccess();
-
-                return null;
+                return new DistributedLockToken(client, createResult.NewPath, log);
             }
-            catch
-            {
-                logToken.Dispose();
-                throw;
-            }
+
+            var deleteResult = await client.DeleteProtectedAsync(new DeleteRequest(createResult.NewPath), log).ConfigureAwait(false);
+            deleteResult.EnsureSuccess();
+
+            return null;
         }
     }
 }

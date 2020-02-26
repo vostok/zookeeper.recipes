@@ -1,8 +1,6 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Vostok.Commons.Threading;
 using Vostok.Logging.Abstractions;
-using Vostok.Logging.Context;
 using Vostok.ZooKeeper.Client.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Request;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Result;
@@ -14,17 +12,14 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
     {
         private readonly IZooKeeperClient client;
         private readonly string path;
-        private readonly OperationContextToken logToken;
         private readonly ILog log;
         private readonly AtomicBoolean disposed = false;
         private readonly TaskCompletionSource<DeleteResult> deleteResult = new TaskCompletionSource<DeleteResult>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        internal DistributedLockToken(IZooKeeperClient client, Guid id, string path, OperationContextToken logToken, ILog log)
+        internal DistributedLockToken(IZooKeeperClient client, string path, ILog log)
         {
             this.client = client;
-            Id = id;
             this.path = path;
-            this.logToken = logToken;
             this.log = log;
 
             Task.Run(
@@ -47,10 +42,7 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
 
         /// <inheritdoc/>
         public bool IsAcquired => !disposed;
-
-        /// <inheritdoc/>
-        public Guid Id { get; }
-
+        
         /// <inheritdoc/>
         public void Dispose()
         {
@@ -63,9 +55,6 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
                 delete.EnsureSuccess();
 
                 log.Info("Lock with path '{Path}' successfully released.", path);
-
-                // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
-                logToken.Dispose();
             }
             else
             {

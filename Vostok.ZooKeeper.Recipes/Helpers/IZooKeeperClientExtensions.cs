@@ -24,11 +24,9 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
         /// </summary>
         public static async Task<CreateResult> CreateProtectedAsync([NotNull] this IZooKeeperClient client, [NotNull] CreateRequest request, [NotNull] ILog log, Guid? lockId = null)
         {
-            lockId = lockId ?? Guid.NewGuid();
-            var protectedPath = request.CreateMode.IsSequential() ? $"{request.Path}-{lockId:N}-" : $"{request.Path}-{lockId:N}";
-            request = request.WithPath(protectedPath);
+            request = request.WithPath(ZooKeeperPathHelper.BuildProtectedNodePath(request, lockId));
 
-            log.Info("Creating a protected node with path '{Path}'..", protectedPath);
+            log.Info("Creating a protected node with path '{Path}'..", request.Path);
 
             while (true)
             {

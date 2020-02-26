@@ -10,11 +10,6 @@ using Vostok.ZooKeeper.Recipes.Helpers;
 
 namespace Vostok.ZooKeeper.Recipes
 {
-    // CR(iloktionov): 1. A general question: has this lock implementation been tested for compatibility with legacy node format?
-    // CR(kungurtsev): new lock is fine with old nodes, but old lock ignores new nodes.
-
-    // CR(iloktionov): 2. I think we should verbally discuss the merits of using operation context for logging.
-
     /// <inheritdoc/>
     [PublicAPI]
     public class DistributedLock : IDistributedLock

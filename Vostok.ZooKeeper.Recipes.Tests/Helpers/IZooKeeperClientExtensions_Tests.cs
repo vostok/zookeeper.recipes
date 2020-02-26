@@ -36,15 +36,16 @@ namespace Vostok.ZooKeeper.Recipes.Tests.Helpers
             var created = await ZooKeeperClient.CreateProtectedAsync(new CreateRequest(prefix, createMode), Log);
             created.IsSuccessful.Should().BeTrue();
 
-            created.NewPath.Should().StartWith(prefix);
+            created.NewPath.Should().StartWith(folder);
             ZooKeeperClient.Exists(created.NewPath).Exists.Should().BeTrue();
         }
 
         [Test]
         public async Task CreateProtectedAsync_should_return_no_network_errors()
         {
-            var created = await ZooKeeperClient.CreateProtectedAsync(new CreateRequest("asdf", CreateMode.Persistent), Log);
-            created.Status.Should().Be(ZooKeeperStatus.BadArguments);
+            await ZooKeeperClient.CreateAsync("/asdf", CreateMode.Ephemeral);
+            var created = await ZooKeeperClient.CreateProtectedAsync(new CreateRequest("/asdf/lock", CreateMode.Persistent), Log);
+            created.Status.Should().Be(ZooKeeperStatus.ChildrenForEphemeralAreNotAllowed);
         }
 
         [Test]
@@ -133,7 +134,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests.Helpers
             ZooKeeperClient.Exists(created2.NewPath).Exists.Should().BeTrue();
             created2.NewPath.Should().NotBe(created1.NewPath);
 
-            var deleted = await ZooKeeperClient.DeleteProtectedAsync(new DeleteRequest($"{prefix}-{id:N}"), Log);
+            var deleted = await ZooKeeperClient.DeleteProtectedAsync(new DeleteRequest($"{folder}/_c_{id:D}"), Log);
             deleted.IsSuccessful.Should().BeTrue();
             ZooKeeperClient.Exists(created1.NewPath).Exists.Should().BeFalse();
             ZooKeeperClient.Exists(created2.NewPath).Exists.Should().BeFalse();

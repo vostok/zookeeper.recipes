@@ -10,7 +10,7 @@ ZooKeeper recipes, such as distributed lock, based on Vostok.ZooKeeper.Client.
 
 ## Quick start
 
-	var @lock = new DistributedLock(client, new DistributedLockSettings(lockPath), log);
+	var @lock = new DistributedLock(zooKeeperClient, new DistributedLockSettings(lockPath), log);
 
     using (var token = await @lock.AcquireAsync())
     {

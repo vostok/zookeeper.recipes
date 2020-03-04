@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Vostok.Logging.Abstractions;
-using Vostok.Logging.Context;
 using Vostok.ZooKeeper.Client.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Request;
@@ -11,20 +10,22 @@ using Vostok.ZooKeeper.Recipes.Helpers;
 
 namespace Vostok.ZooKeeper.Recipes
 {
+    /// <inheritdoc/>
     [PublicAPI]
-    public class DistributedLock
+    public class DistributedLock : IDistributedLock
     {
         private readonly IZooKeeperClient client;
         private readonly ILog log;
-        private readonly DistributedLockSettings settings;
         private readonly string lockFolder;
         private readonly string lockPath;
         private readonly byte[] lockData;
 
         public DistributedLock([NotNull] IZooKeeperClient client, [NotNull] DistributedLockSettings settings, [CanBeNull] ILog log = null)
         {
-            this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
-            this.log = (log ?? LogProvider.Get()).ForContext<DistributedLock>().WithOperationContext();
+            if (settings == null)
+                throw new ArgumentNullException(nameof(settings));
+
+            this.log = (log ?? LogProvider.Get()).ForContext<DistributedLock>();
             this.client = client ?? throw new ArgumentNullException(nameof(client));
 
             lockFolder = settings.Path;
@@ -32,49 +33,70 @@ namespace Vostok.ZooKeeper.Recipes
             lockData = NodeDataHelper.GetNodeData();
         }
 
-        public async Task<DistributedLockToken> AcquireAsync(CancellationToken cancellationToken = default)
+        /// <summary>
+        /// <inheritdoc/>
+        /// <para>Execution time of this method may significantly exceed given <paramref name="timeout"/> in case of ZooKeeper unavailability.</para>
+        /// </summary>
+        public async Task<IDistributedLockToken> TryAcquireAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
         {
-            using (new OperationContextToken(lockFolder))
+            using (var timeoutCancellation = new CancellationTokenSource(timeout))
+            using (var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCancellation.Token))
             {
-                while (!cancellationToken.IsCancellationRequested)
+                var linkedCancellationToken = linkedCancellation.Token;
+                var lockId = Guid.NewGuid();
+
+                while (!linkedCancellationToken.IsCancellationRequested)
                 {
-                    var @lock = await AcquireOnceAsync(cancellationToken).ConfigureAwait(false);
-
-                    if (@lock != null)
-                        return @lock;
+                    var token = await AcquireOnceAsync(linkedCancellationToken, lockId).ConfigureAwait(false);
+                    if (token != null)
+                        return token;
                 }
-
-                throw new OperationCanceledException($"Lock '{lockFolder}' acqure has been canceled.");
             }
+
+            if (cancellationToken.IsCancellationRequested)
+                throw new OperationCanceledException($"Lock '{lockFolder}' acquisition has been canceled.");
+
+            return null;
         }
 
-        private async Task<DistributedLockToken> AcquireOnceAsync(CancellationToken cancellationToken)
+        /// <inheritdoc/>
+        public async Task<IDistributedLockToken> AcquireAsync(CancellationToken cancellationToken = default)
         {
-            log.Info("Acquiring lock..");
+            var tokenId = Guid.NewGuid();
 
-            var create = await client.CreateProtectedAsync(
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                var token = await AcquireOnceAsync(cancellationToken, tokenId).ConfigureAwait(false);
+                if (token != null)
+                    return token;
+            }
+
+            throw new OperationCanceledException($"Lock '{lockFolder}' acquisition has been canceled.");
+        }
+
+        private async Task<IDistributedLockToken> AcquireOnceAsync(CancellationToken cancellationToken, Guid tokenId)
+        {
+            log.Info("Acquiring lock with path '{Path}'..", lockFolder);
+
+            var createResult = await client.CreateProtectedAsync(
                     new CreateRequest(lockPath, CreateMode.EphemeralSequential)
                     {
                         Data = lockData
                     },
-                    log)
+                    log,
+                    tokenId)
                 .ConfigureAwait(false);
+            createResult.EnsureSuccess();
 
-            if (!create.IsSuccessful)
-                throw new Exception("Failed to create lock node.", create.Exception);
-
-            if (await client.WaitForLeadershipAsync(create.NewPath, log, cancellationToken).ConfigureAwait(false))
+            if (await ZooKeeperNodeHelper.WaitForLeadershipAsync(client, createResult.NewPath, log, cancellationToken).ConfigureAwait(false))
             {
-                log.Info("Lock with path '{Path}' was successfully acquired.", create.NewPath);
+                log.Info("Lock token with path '{Path}' was successfully acquired.", createResult.NewPath);
 
-                return new DistributedLockToken(client, create.NewPath, log);
+                return new DistributedLockToken(client, createResult.NewPath, log);
             }
 
-            log.Info("Lock with path '{Path}' was not acquired.", create.NewPath);
-            var delete = await client.DeleteProtectedAsync(new DeleteRequest(create.NewPath), log).ConfigureAwait(false);
-
-            if (!delete.IsSuccessful)
-                throw new Exception("Failed to delete lock node.", delete.Exception);
+            var deleteResult = await client.DeleteProtectedAsync(new DeleteRequest(createResult.NewPath), log).ConfigureAwait(false);
+            deleteResult.EnsureSuccess();
 
             return null;
         }

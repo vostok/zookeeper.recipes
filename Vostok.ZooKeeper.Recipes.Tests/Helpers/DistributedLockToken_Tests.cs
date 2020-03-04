@@ -6,8 +6,9 @@ using Vostok.Commons.Testing;
 using Vostok.ZooKeeper.Client.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Request;
+using Vostok.ZooKeeper.Recipes.Helpers;
 
-namespace Vostok.ZooKeeper.Recipes.Tests
+namespace Vostok.ZooKeeper.Recipes.Tests.Helpers
 {
     [TestFixture]
     internal class DistributedLockToken_Tests : TestsBase

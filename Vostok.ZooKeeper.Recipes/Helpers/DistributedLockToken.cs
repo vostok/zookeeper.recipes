@@ -42,7 +42,7 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
 
         /// <inheritdoc/>
         public bool IsAcquired => !disposed;
-        
+
         /// <inheritdoc/>
         public void Dispose()
         {

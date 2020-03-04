@@ -24,7 +24,7 @@ namespace Vostok.ZooKeeper.Recipes
         {
             if (settings == null)
                 throw new ArgumentNullException(nameof(settings));
-            
+
             this.log = (log ?? LogProvider.Get()).ForContext<DistributedLock>();
             this.client = client ?? throw new ArgumentNullException(nameof(client));
 

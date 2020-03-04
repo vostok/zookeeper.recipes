@@ -8,7 +8,6 @@ using NUnit.Framework;
 using Vostok.Commons.Testing;
 using Vostok.Logging.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions;
-using Vostok.ZooKeeper.Recipes.Helpers;
 
 // ReSharper disable AccessToDisposedClosure
 

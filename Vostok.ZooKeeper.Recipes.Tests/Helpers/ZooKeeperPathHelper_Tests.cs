@@ -17,7 +17,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests.Helpers
                     new CreateRequest("/vostok/test/lock-test/lock", CreateMode.EphemeralSequential),
                     new Guid("e2646dc9-afcc-44e1-b7af-a20b46006fe1"))
                 .Should()
-                .Be("/vostok/test/lock-test/_c_e2646dc9-afcc-44e1-b7af-a20b46006fe1-lock-");
+                .Be("/vostok/test/lock-test/_c_e2646dc9-afcc-44e1-b7af-a20b46006fe1-lock");
         }
     }
 }

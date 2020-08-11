@@ -11,7 +11,7 @@ using Vostok.ZooKeeper.Client.Abstractions.Model.Result;
 
 namespace Vostok.ZooKeeper.Recipes.Helpers
 {
-    internal static class IZooKeeperClientExtensions
+    public static class IZooKeeperClientExtensions
     {
         /// <summary>
         /// <para>Creates new node specified in given <paramref name="request" />.</para>
@@ -22,9 +22,9 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
         /// <para>This node will be deleted, before new create attempt.</para>
         /// <para>Check returned <see cref="CreateResult"/> to see if operation was successful.</para>
         /// </summary>
-        public static async Task<CreateResult> CreateProtectedAsync([NotNull] this IZooKeeperClient client, [NotNull] CreateRequest request, [NotNull] ILog log, Guid? lockId = null)
+        public static async Task<CreateResult> CreateProtectedAsync([NotNull] this IZooKeeperClient client, [NotNull] CreateRequest request, [NotNull] ILog log, Guid? id = null)
         {
-            request = request.WithPath(ZooKeeperPathHelper.BuildProtectedNodePath(request, lockId));
+            request = request.WithPath(ZooKeeperPathHelper.BuildProtectedNodePath(request, id));
 
             log.Info("Creating a protected node with path '{Path}'..", request.Path);
 

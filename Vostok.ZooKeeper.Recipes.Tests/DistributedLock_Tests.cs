@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -8,6 +9,7 @@ using NUnit.Framework;
 using Vostok.Commons.Testing;
 using Vostok.Logging.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions;
+using Vostok.ZooKeeper.Client.Abstractions.Model;
 
 // ReSharper disable AccessToDisposedClosure
 
@@ -34,6 +36,25 @@ namespace Vostok.ZooKeeper.Recipes.Tests
             token.Dispose();
 
             CheckNoLocks();
+        }
+
+        [Test]
+        public void AcquireAsync_should_use_curator_node_path_format()
+        {
+            var @lock = new DistributedLock(ZooKeeperClient, new DistributedLockSettings(folder), Log);
+            using (@lock.AcquireAsync().GetAwaiter().GetResult())
+            {
+                var nodes = ZooKeeperClient.GetChildren(folder);
+                nodes.Status.Should().Be(ZooKeeperStatus.Ok);
+                var fullPath = nodes.ChildrenNames.Single();
+                Console.WriteLine(fullPath);
+                // format should be "_c_9502bfd9-ba9d-43cd-8759-2564d8abc4db-lock-0000000000"
+                var nodePathEx = new Regex("_c_([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})-lock-0000000000");
+                var match = nodePathEx.Match(fullPath);
+                match.Success.Should().BeTrue();
+                match.Groups.Count.Should().Be(2);
+                Guid.TryParse(match.Groups[1].Value, out _).Should().BeTrue(); //_c_{guid}-lock-{seq num 10 digits}
+            }
         }
 
         [Test]

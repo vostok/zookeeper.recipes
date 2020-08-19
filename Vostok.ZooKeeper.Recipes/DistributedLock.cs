@@ -29,7 +29,7 @@ namespace Vostok.ZooKeeper.Recipes
             this.client = client ?? throw new ArgumentNullException(nameof(client));
 
             lockFolder = settings.Path;
-            lockPath = ZooKeeperPath.Combine(lockFolder, "lock");
+            lockPath = ZooKeeperPath.Combine(lockFolder, "lock-");
             lockData = NodeDataHelper.GetNodeData();
         }
 

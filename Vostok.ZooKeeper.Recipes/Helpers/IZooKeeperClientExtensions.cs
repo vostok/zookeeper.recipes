@@ -11,6 +11,7 @@ using Vostok.ZooKeeper.Client.Abstractions.Model.Result;
 
 namespace Vostok.ZooKeeper.Recipes.Helpers
 {
+    [PublicAPI]
     public static class IZooKeeperClientExtensions
     {
         /// <summary>

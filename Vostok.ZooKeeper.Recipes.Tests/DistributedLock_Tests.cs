@@ -39,6 +39,25 @@ namespace Vostok.ZooKeeper.Recipes.Tests
         }
 
         [Test]
+        public void AcquireAsync_should_use_curator_node_path_format()
+        {
+            var @lock = new DistributedLock(ZooKeeperClient, new DistributedLockSettings(folder), Log);
+            using (@lock.AcquireAsync().GetAwaiter().GetResult())
+            {
+                var nodes = ZooKeeperClient.GetChildren(folder);
+                nodes.Status.Should().Be(ZooKeeperStatus.Ok);
+                var fullPath = nodes.ChildrenNames.Single();
+                Console.WriteLine(fullPath);
+                // format should be "_c_9502bfd9-ba9d-43cd-8759-2564d8abc4db-lock-0000000000"
+                var nodePathEx = new Regex("_c_([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})-lock-0000000000");
+                var match = nodePathEx.Match(fullPath);
+                match.Success.Should().BeTrue();
+                match.Groups.Count.Should().Be(2);
+                Guid.TryParse(match.Groups[1].Value, out _).Should().BeTrue(); //_c_{guid}-lock-{seq num 10 digits}
+            }
+        }
+
+        [Test]
         public async Task AcquireAsync_should_work_concurrently()
         {
             var @lock = new DistributedLock(ZooKeeperClient, new DistributedLockSettings(folder), Log);
@@ -70,29 +89,6 @@ namespace Vostok.ZooKeeper.Recipes.Tests
             working.Should().Be(0);
 
             CheckNoLocks();
-        }
-
-        [Test]
-        public void Test_NodePathFormat()
-        {
-            var distributedLock = new DistributedLock(ZooKeeperClient, new DistributedLockSettings(folder), Log);
-            using (distributedLock.AcquireAsync().GetAwaiter().GetResult())
-            {
-                {
-                    var nodes = ZooKeeperClient.GetChildren(folder);
-                    nodes.Status.Should().Be(ZooKeeperStatus.Ok);
-                    var fullPath = nodes.ChildrenNames.Single();
-                    Console.WriteLine(fullPath);
-                    //note format should be "_c_9502bfd9-ba9d-43cd-8759-2564d8abc4db-lock-0000000000"
-                    //note for compatiblilty with zookeper curator based locks
-                    var nodePathEx = new Regex("_c_([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})-lock-0000000000");
-                    var match = nodePathEx.Match(fullPath);
-                    match.Success.Should().BeTrue();
-                    match.Groups.Count.Should().Be(2);
-                    Guid.TryParse(match.Groups[1].Value, out _).Should().BeTrue(); //_c_{guid}-lock-{seq num 10 digits}
-
-                }
-            }
         }
 
         [Test]

@@ -4,7 +4,7 @@ using Vostok.ZooKeeper.Client.Abstractions.Model.Result;
 
 namespace Vostok.ZooKeeper.Recipes.Helpers
 {
-    internal static class ZooKeeperResultExtensions
+    public static class ZooKeeperResultExtensions
     {
         public static bool IsRetriableError([NotNull] this ZooKeeperResult result) =>
             result.Status == ZooKeeperStatus.UnknownError ||

@@ -8,6 +8,7 @@ using Vostok.Logging.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions.Model;
 using Vostok.ZooKeeper.Client.Abstractions.Model.Request;
+using Vostok.ZooKeeper.Client.Abstractions.Model.Result;
 
 namespace Vostok.ZooKeeper.Recipes.Helpers
 {
@@ -26,13 +27,13 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
             while (!cancellationToken.IsCancellationRequested)
             {
                 var existsResult = await client.ExistsAsync(path).ConfigureAwait(false);
-                if (existsResult.IsRetriableError())
+                if (existsResult.IsRetriableNetworkError())
                     continue;
                 if (!existsResult.IsSuccessful || !existsResult.Exists || cancellationToken.IsCancellationRequested)
                     return false;
 
                 var childrenResult = await client.GetChildrenAsync(parent).ConfigureAwait(false);
-                if (childrenResult.IsRetriableError())
+                if (childrenResult.IsRetriableNetworkError())
                     continue;
                 if (!childrenResult.IsSuccessful || cancellationToken.IsCancellationRequested)
                     return false;

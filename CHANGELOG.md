@@ -1,3 +1,8 @@
+## 0.1.2 (21-09-2021):
+
+Updated `EnvironmentInfo.Application` from `vostok.commons.environment` module.
+
+
 ## 0.1.1 (19-08-2020): 
 
 Made `CreateProtectedAsync` and `DeleteProtectedAsync` extensions public.

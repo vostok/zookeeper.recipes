@@ -1,6 +1,6 @@
 # Vostok.ZooKeeper.Recipes
 
-[![Build status](https://ci.appveyor.com/api/projects/status/github/vostok/zookeeper.recipes?svg=true&branch=master)](https://ci.appveyor.com/project/vostok/zookeeper.recipes/branch/master)
+[![Build & Test & Publish](https://github.com/vostok/zookeeper.recipes/actions/workflows/ci.yml/badge.svg)](https://github.com/vostok/zookeeper.recipes/actions/workflows/ci.yml)
 [![NuGet](https://img.shields.io/nuget/v/Vostok.ZooKeeper.Recipes.svg)](https://www.nuget.org/packages/Vostok.ZooKeeper.Recipes)
 
 ZooKeeper recipes, such as distributed lock, based on Vostok.ZooKeeper.Client.

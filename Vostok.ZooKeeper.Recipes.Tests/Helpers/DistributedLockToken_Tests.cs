@@ -54,5 +54,39 @@ namespace Vostok.ZooKeeper.Recipes.Tests.Helpers
             token.IsAcquired.Should().BeFalse();
             ZooKeeperClient.Exists(created.NewPath).Exists.Should().BeFalse();
         }
+        
+        [Test]
+        public async Task CancellationToken_should_be_triggered_on_node_deletion()
+        {
+            var created = await ZooKeeperClient.CreateProtectedAsync(new CreateRequest(path, CreateMode.Persistent), Log);
+            created.IsSuccessful.Should().BeTrue();
+
+            var token = new DistributedLockToken(ZooKeeperClient, created.NewPath, Log);
+            token.IsAcquired.Should().BeTrue();
+
+            var delay = Task.Delay(-1, token.CancellationToken);
+            delay.IsCompleted.Should().BeFalse();
+
+            ZooKeeperClient.Delete(created.NewPath).EnsureSuccess();
+
+            delay.ShouldCompleteWithErrorIn<TaskCanceledException>(DefaultTimeout);
+        }
+        
+        [Test]
+        public async Task CancellationToken_should_be_triggered_on_dispose()
+        {
+            var created = await ZooKeeperClient.CreateProtectedAsync(new CreateRequest(path, CreateMode.Persistent), Log);
+            created.IsSuccessful.Should().BeTrue();
+
+            var token = new DistributedLockToken(ZooKeeperClient, created.NewPath, Log);
+            token.IsAcquired.Should().BeTrue();
+
+            var delay = Task.Delay(-1, token.CancellationToken);
+            delay.IsCompleted.Should().BeFalse();
+
+            token.Dispose();
+
+            delay.ShouldCompleteWithErrorIn<TaskCanceledException>(DefaultTimeout);
+        }
     }
 }

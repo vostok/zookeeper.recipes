@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 using Vostok.Commons.Threading;
 using Vostok.Logging.Abstractions;
 using Vostok.ZooKeeper.Client.Abstractions;
@@ -15,6 +16,7 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
         private readonly ILog log;
         private readonly AtomicBoolean disposed = false;
         private readonly TaskCompletionSource<DeleteResult> deleteResult = new TaskCompletionSource<DeleteResult>(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
         internal DistributedLockToken(IZooKeeperClient client, string path, ILog log)
         {
@@ -44,10 +46,16 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
         public bool IsAcquired => !disposed;
 
         /// <inheritdoc/>
+        public CancellationToken CancellationToken => cancellationTokenSource.Token;
+
+        /// <inheritdoc/>
         public void Dispose()
         {
             if (disposed.TrySetTrue())
             {
+                cancellationTokenSource.Cancel();
+                cancellationTokenSource.Dispose();
+
                 log.Info("Releasing a lock with path '{Path}'.", path);
 
                 var delete = client.DeleteProtectedAsync(new DeleteRequest(path), log).GetAwaiter().GetResult();

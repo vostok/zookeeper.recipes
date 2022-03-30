@@ -1,3 +1,7 @@
+## 0.1.5 (30-03-2022):
+
+Added `CancellationToken` property to `IDistributedLockToken` interface.
+
 ## 0.1.4 (06-12-2021):
 
 Added `net6.0` target.

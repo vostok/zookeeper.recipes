@@ -1,0 +1,16 @@
+static Vostok.ZooKeeper.Recipes.Helpers.IZooKeeperClientExtensions.CreateProtectedAsync(this Vostok.ZooKeeper.Client.Abstractions.IZooKeeperClient client, Vostok.ZooKeeper.Client.Abstractions.Model.Request.CreateRequest request, Vostok.Logging.Abstractions.ILog log, System.Guid? id = null) -> System.Threading.Tasks.Task<Vostok.ZooKeeper.Client.Abstractions.Model.Result.CreateResult>
+static Vostok.ZooKeeper.Recipes.Helpers.IZooKeeperClientExtensions.DeleteProtectedAsync(this Vostok.ZooKeeper.Client.Abstractions.IZooKeeperClient client, Vostok.ZooKeeper.Client.Abstractions.Model.Request.DeleteRequest request, Vostok.Logging.Abstractions.ILog log) -> System.Threading.Tasks.Task<Vostok.ZooKeeper.Client.Abstractions.Model.Result.DeleteResult>
+Vostok.ZooKeeper.Recipes.DistributedLock
+Vostok.ZooKeeper.Recipes.DistributedLock.AcquireAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Vostok.ZooKeeper.Recipes.IDistributedLockToken>
+Vostok.ZooKeeper.Recipes.DistributedLock.DistributedLock(Vostok.ZooKeeper.Client.Abstractions.IZooKeeperClient client, Vostok.ZooKeeper.Recipes.DistributedLockSettings settings, Vostok.Logging.Abstractions.ILog log = null) -> void
+Vostok.ZooKeeper.Recipes.DistributedLock.TryAcquireAsync(System.TimeSpan timeout, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Vostok.ZooKeeper.Recipes.IDistributedLockToken>
+Vostok.ZooKeeper.Recipes.DistributedLockSettings
+Vostok.ZooKeeper.Recipes.DistributedLockSettings.DistributedLockSettings(string path) -> void
+Vostok.ZooKeeper.Recipes.DistributedLockSettings.Path.get -> string
+Vostok.ZooKeeper.Recipes.Helpers.IZooKeeperClientExtensions
+Vostok.ZooKeeper.Recipes.IDistributedLock
+Vostok.ZooKeeper.Recipes.IDistributedLock.AcquireAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Vostok.ZooKeeper.Recipes.IDistributedLockToken>
+Vostok.ZooKeeper.Recipes.IDistributedLock.TryAcquireAsync(System.TimeSpan timeout, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Vostok.ZooKeeper.Recipes.IDistributedLockToken>
+Vostok.ZooKeeper.Recipes.IDistributedLockToken
+Vostok.ZooKeeper.Recipes.IDistributedLockToken.CancellationToken.get -> System.Threading.CancellationToken
+Vostok.ZooKeeper.Recipes.IDistributedLockToken.IsAcquired.get -> bool

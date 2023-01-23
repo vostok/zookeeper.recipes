@@ -10,7 +10,11 @@ namespace Vostok.ZooKeeper.Recipes
     /// <para>Should be disposed in order to release the lock.</para>
     /// </summary>
     [PublicAPI]
-    public interface IDistributedLockToken : IDisposable
+    public interface IDistributedLockToken
+    : IDisposable
+    #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+    , IAsyncDisposable
+    #endif
     {
         /// <summary>
         /// <para>Returns whether or not the lock represented by this token is still held.</para>

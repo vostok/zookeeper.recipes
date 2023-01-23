@@ -38,6 +38,22 @@ namespace Vostok.ZooKeeper.Recipes.Tests
             CheckNoLocks();
         }
 
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+        [Test]
+        public async Task AcquireAsync_should_work_alone_with_async_dispose()
+        {
+            var @lock = new DistributedLock(ZooKeeperClient, new DistributedLockSettings(folder), Log);
+
+            {
+                await using var token = await @lock.AcquireAsync();
+                token.IsAcquired.Should().BeTrue();
+                // DisposeAsync will be called automatically
+            }
+
+            CheckNoLocks();
+        }
+#endif
+
         [Test]
         public void AcquireAsync_should_use_curator_node_path_format()
         {

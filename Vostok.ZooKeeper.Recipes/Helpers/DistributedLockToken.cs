@@ -70,5 +70,29 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
                 delete.EnsureSuccess();
             }
         }
+        
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+        public async ValueTask DisposeAsync()
+        {
+            if (disposed.TrySetTrue())
+            {
+                cancellationTokenSource.Cancel();
+                cancellationTokenSource.Dispose();
+
+                log.Info("Releasing a lock with path '{Path}'.", path);
+
+                var delete = await client.DeleteProtectedAsync(new DeleteRequest(path), log).ConfigureAwait(false);
+                deleteResult.TrySetResult(delete);
+                delete.EnsureSuccess();
+
+                log.Info("Lock with path '{Path}' successfully released.", path);
+            }
+            else
+            {
+                var delete = await deleteResult.Task.ConfigureAwait(false);
+                delete.EnsureSuccess();
+            }
+        }
+#endif
     }
 }

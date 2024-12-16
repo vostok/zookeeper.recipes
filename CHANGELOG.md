@@ -1,3 +1,7 @@
+## 0.1.6 (16-12-2024): 
+
+Bump NuGet deps versions
+
 ## 0.1.5 (30-03-2022):
 
 Added `CancellationToken` property to `IDistributedLockToken` interface.

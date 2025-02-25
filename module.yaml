@@ -9,6 +9,25 @@ notests *default:
     - Vostok.ZooKeeper.Recipes/bin/Release/netstandard2.0/Vostok.ZooKeeper.Recipes.dll
     - module vostok.zookeeper.client.abstractions
     - module vostok.logging.abstractions
+    - groups:
+        - target-framework: "netstandard2.0"
+          libraries:
+            - Vostok.ZooKeeper.Recipes/bin/Release/netstandard2.0/Vostok.ZooKeeper.Recipes.dll
+          modules:
+            - name: vostok.zookeeper.client.abstractions
+            - name: vostok.logging.abstractions
+        - target-framework: "net6.0"
+          libraries:
+            - Vostok.ZooKeeper.Recipes/bin/Release/net6.0/Vostok.ZooKeeper.Recipes.dll
+          modules:
+            - name: vostok.zookeeper.client.abstractions
+            - name: vostok.logging.abstractions
+        - target-framework: "net8.0"
+          libraries:
+            - Vostok.ZooKeeper.Recipes/bin/Release/net8.0/Vostok.ZooKeeper.Recipes.dll
+          modules:
+            - name: vostok.zookeeper.client.abstractions
+            - name: vostok.logging.abstractions
 
   deps:
     - vostok.logging.abstractions
@@ -28,6 +47,30 @@ full-build > notests:
     - vostok.zookeeper.localensemble
     - vostok.zookeeper.testing
     - vostok.commons.testing/src
+
+  install:
+    - Vostok.ZooKeeper.Recipes/bin/Release/netstandard2.0/Vostok.ZooKeeper.Recipes.dll
+    - module vostok.zookeeper.client.abstractions
+    - module vostok.logging.abstractions
+    - groups:
+        - target-framework: "netstandard2.0"
+          libraries:
+            - Vostok.ZooKeeper.Recipes/bin/Release/netstandard2.0/Vostok.ZooKeeper.Recipes.dll
+          modules:
+            - name: vostok.zookeeper.client.abstractions
+            - name: vostok.logging.abstractions
+        - target-framework: "net6.0"
+          libraries:
+            - Vostok.ZooKeeper.Recipes/bin/Release/net6.0/Vostok.ZooKeeper.Recipes.dll
+          modules:
+            - name: vostok.zookeeper.client.abstractions
+            - name: vostok.logging.abstractions
+        - target-framework: "net8.0"
+          libraries:
+            - Vostok.ZooKeeper.Recipes/bin/Release/net8.0/Vostok.ZooKeeper.Recipes.dll
+          modules:
+            - name: vostok.zookeeper.client.abstractions
+            - name: vostok.logging.abstractions
 
   build:
     target: Vostok.ZooKeeper.Recipes.sln

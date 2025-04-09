@@ -40,6 +40,8 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
                 var delete = await client.DeleteProtectedAsync(deleteRequest, log).ConfigureAwait(false);
                 if (!delete.IsSuccessful)
                     return CreateResult.Unsuccessful(delete.Status, delete.Path, delete.Exception);
+
+                await Task.Delay(100).ConfigureAwait(false);
             }
         }
 
@@ -66,7 +68,10 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
             {
                 var childrenResult = await client.GetChildrenAsync(parent).ConfigureAwait(false);
                 if (childrenResult.IsRetriableNetworkError())
+                {
+                    await Task.Delay(100).ConfigureAwait(false);
                     continue;
+                }
 
                 if (!childrenResult.IsSuccessful)
                     return DeleteResult.Unsuccessful(childrenResult.Status, childrenResult.Path, childrenResult.Exception);
@@ -86,7 +91,10 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
 
                 var retriableResult = deleteResults.FirstOrDefault(r => !r.IsSuccessful && r.IsRetriableNetworkError());
                 if (retriableResult != null)
+                {
+                    await Task.Delay(100).ConfigureAwait(false);
                     continue;
+                }
 
                 return deleteResults.First();
             }

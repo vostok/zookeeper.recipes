@@ -29,7 +29,7 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
                 var existsResult = await client.ExistsAsync(path).ConfigureAwait(false);
                 if (existsResult.IsRetriableNetworkError())
                 {
-                    await Task.Delay(100).ConfigureAwait(false);
+                    await DelayGenerator.WaitAsync(RetryDelay, token: cancellationToken).SilentlyContinue().ConfigureAwait(false);
                     continue;
                 }
 
@@ -39,7 +39,7 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
                 var childrenResult = await client.GetChildrenAsync(parent).ConfigureAwait(false);
                 if (childrenResult.IsRetriableNetworkError())
                 {
-                    await Task.Delay(100).ConfigureAwait(false);
+                    await DelayGenerator.WaitAsync(RetryDelay, token: cancellationToken).SilentlyContinue().ConfigureAwait(false);
                     continue;
                 }
 
@@ -99,5 +99,7 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
                 await wait.Task.SilentlyContinue().ConfigureAwait(false);
             }
         }
+
+        private static readonly TimeSpan RetryDelay = TimeSpan.FromMilliseconds(100);
     }
 }

@@ -1,3 +1,7 @@
+## 0.1.7 (14-04-2025):
+
+Add delay before retry in case of retriable network errors
+
 ## 0.1.6 (16-12-2024): 
 
 Bump NuGet deps versions

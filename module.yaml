@@ -40,8 +40,6 @@ notests *default:
 
 full-build > notests:
   deps:
-    - -vostok.devtools
-    - vostok.devtools@with-net6.0
     - vostok.zookeeper.client
     - vostok.logging.console
     - vostok.zookeeper.localensemble

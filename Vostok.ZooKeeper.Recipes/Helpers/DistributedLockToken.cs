@@ -24,22 +24,20 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
             this.path = path;
             this.log = log;
 
-            Task.Run(
-                async () =>
-                {
-                    await ZooKeeperNodeHelper
-                        .WaitForDisappearanceAsync(client, new[] {path}, log)
-                        .ContinueWith(
-                            _ =>
-                            {
-                                if (!disposed)
-                                {
-                                    log.Info("Lost a lock with path '{Path}'.", path);
-                                    Dispose();
-                                }
-                            })
-                        .ConfigureAwait(false);
-                });
+            Task.Run(async () =>
+            {
+                await ZooKeeperNodeHelper
+                    .WaitForDisappearanceAsync(client, new[] {path}, log)
+                    .ContinueWith(_ =>
+                    {
+                        if (!disposed)
+                        {
+                            log.Info("Lost a lock with path '{Path}'.", path);
+                            Dispose();
+                        }
+                    })
+                    .ConfigureAwait(false);
+            });
         }
 
         /// <inheritdoc/>
@@ -70,5 +68,28 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
                 delete.EnsureSuccess();
             }
         }
+#if NET
+        public async ValueTask DisposeAsync()
+        {
+            if (disposed.TrySetTrue())
+            {
+                cancellationTokenSource.Cancel();
+                cancellationTokenSource.Dispose();
+
+                log.Info("Releasing a lock with path '{Path}'.", path);
+
+                var delete = await client.DeleteProtectedAsync(new DeleteRequest(path), log);
+                deleteResult.TrySetResult(delete);
+                delete.EnsureSuccess();
+
+                log.Info("Lock with path '{Path}' successfully released.", path);
+            }
+            else
+            {
+                var delete = await deleteResult.Task;
+                delete.EnsureSuccess();
+            }
+        }
+#endif
     }
 }

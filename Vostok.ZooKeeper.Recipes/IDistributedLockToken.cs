@@ -11,6 +11,10 @@ namespace Vostok.ZooKeeper.Recipes
     /// </summary>
     [PublicAPI]
     public interface IDistributedLockToken : IDisposable
+#if NET
+        ,
+        IAsyncDisposable
+#endif
     {
         /// <summary>
         /// <para>Returns whether or not the lock represented by this token is still held.</para>
@@ -18,7 +22,7 @@ namespace Vostok.ZooKeeper.Recipes
         /// <para>A <c>false</c> value may also indicate a false negative (in cases such as connection loss).</para>
         /// </summary>
         bool IsAcquired { get; }
-        
+
         /// <summary>
         /// <para>A token that triggers on lock loss.</para>
         /// </summary>

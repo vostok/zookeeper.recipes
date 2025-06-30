@@ -38,6 +38,20 @@ namespace Vostok.ZooKeeper.Recipes.Tests
             CheckNoLocks();
         }
 
+#if NET
+        [Test]
+        public async Task AcquireAsync_should_work_alone_AsyncDispose()
+        {
+            var @lock = new DistributedLock(ZooKeeperClient, new DistributedLockSettings(folder), Log);
+            await using (var token = await @lock.AcquireAsync())
+            {
+                token.IsAcquired.Should().BeTrue();
+
+            }
+            CheckNoLocks();
+        }
+#endif
+
         [Test]
         public void AcquireAsync_should_use_curator_node_path_format()
         {
@@ -224,7 +238,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests
 
             localClient.Dispose();
 
-            Action check = () => token.Dispose();
+            var check = () => token.Dispose();
             check.Should().Throw<Exception>();
         }
 

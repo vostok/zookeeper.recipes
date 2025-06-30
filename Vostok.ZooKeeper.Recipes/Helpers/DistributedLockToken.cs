@@ -64,7 +64,7 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
 
                 log.Info("Releasing a lock with path '{Path}'.", path);
 
-                var delete = await client.DeleteProtectedAsync(new DeleteRequest(path), log);
+                var delete = await client.DeleteProtectedAsync(new DeleteRequest(path), log).ConfigureAwait(false);
                 deleteResult.TrySetResult(delete);
                 delete.EnsureSuccess();
 
@@ -72,7 +72,7 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
             }
             else
             {
-                var delete = await deleteResult.Task;
+                var delete = await deleteResult.Task.ConfigureAwait(false);
                 delete.EnsureSuccess();
             }
         }

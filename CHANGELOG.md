@@ -1,3 +1,6 @@
+## 0.1.8 (30-06-2025):
+
+Add IAsyncDisposable to IDistributedLockToken
 ## 0.1.7 (14-04-2025):
 
 Add delay before retry in case of retriable network errors

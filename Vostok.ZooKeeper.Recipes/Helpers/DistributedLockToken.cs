@@ -49,27 +49,13 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
         /// <inheritdoc/>
         public void Dispose()
         {
-            if (disposed.TrySetTrue())
-            {
-                cancellationTokenSource.Cancel();
-                cancellationTokenSource.Dispose();
-
-                log.Info("Releasing a lock with path '{Path}'.", path);
-
-                var delete = client.DeleteProtectedAsync(new DeleteRequest(path), log).GetAwaiter().GetResult();
-                deleteResult.TrySetResult(delete);
-                delete.EnsureSuccess();
-
-                log.Info("Lock with path '{Path}' successfully released.", path);
-            }
-            else
-            {
-                var delete = deleteResult.Task.GetAwaiter().GetResult();
-                delete.EnsureSuccess();
-            }
+            DisposeAsync().GetAwaiter().GetResult();
         }
 #if NET
         public async ValueTask DisposeAsync()
+#else
+        private async Task DisposeAsync()
+#endif
         {
             if (disposed.TrySetTrue())
             {
@@ -90,6 +76,5 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
                 delete.EnsureSuccess();
             }
         }
-#endif
     }
 }

@@ -32,6 +32,24 @@ namespace Vostok.ZooKeeper.Recipes.Tests.Helpers
             ZooKeeperClient.Exists(created.NewPath).Exists.Should().BeFalse();
         }
 
+#if NET
+        [Test]
+        public async Task DisposeAsync_should_delete_node()
+        {
+            var created = await ZooKeeperClient.CreateProtectedAsync(new CreateRequest(path, CreateMode.Persistent), Log);
+            created.IsSuccessful.Should().BeTrue();
+            ZooKeeperClient.Exists(created.NewPath).Exists.Should().BeTrue();
+
+            var token = new DistributedLockToken(ZooKeeperClient, created.NewPath, Log);
+            token.IsAcquired.Should().BeTrue();
+            ZooKeeperClient.Exists(created.NewPath).Exists.Should().BeTrue();
+
+            await token.DisposeAsync();
+
+            token.IsAcquired.Should().BeFalse();
+            ZooKeeperClient.Exists(created.NewPath).Exists.Should().BeFalse();
+        }
+#endif
         [Test]
         public async Task IsAcquired_should_become_false_on_node_deletion()
         {
@@ -54,7 +72,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests.Helpers
             token.IsAcquired.Should().BeFalse();
             ZooKeeperClient.Exists(created.NewPath).Exists.Should().BeFalse();
         }
-        
+
         [Test]
         public async Task CancellationToken_should_be_triggered_on_node_deletion()
         {
@@ -71,7 +89,7 @@ namespace Vostok.ZooKeeper.Recipes.Tests.Helpers
 
             delay.ShouldCompleteWithErrorIn<TaskCanceledException>(DefaultTimeout);
         }
-        
+
         [Test]
         public async Task CancellationToken_should_be_triggered_on_dispose()
         {

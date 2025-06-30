@@ -24,22 +24,20 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
             this.path = path;
             this.log = log;
 
-            Task.Run(
-                async () =>
-                {
-                    await ZooKeeperNodeHelper
-                        .WaitForDisappearanceAsync(client, new[] {path}, log)
-                        .ContinueWith(
-                            _ =>
-                            {
-                                if (!disposed)
-                                {
-                                    log.Info("Lost a lock with path '{Path}'.", path);
-                                    Dispose();
-                                }
-                            })
-                        .ConfigureAwait(false);
-                });
+            Task.Run(async () =>
+            {
+                await ZooKeeperNodeHelper
+                    .WaitForDisappearanceAsync(client, new[] {path}, log)
+                    .ContinueWith(_ =>
+                    {
+                        if (!disposed)
+                        {
+                            log.Info("Lost a lock with path '{Path}'.", path);
+                            Dispose();
+                        }
+                    })
+                    .ConfigureAwait(false);
+            });
         }
 
         /// <inheritdoc/>
@@ -51,6 +49,14 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
         /// <inheritdoc/>
         public void Dispose()
         {
+            DisposeAsync().GetAwaiter().GetResult();
+        }
+#if NET
+        public async ValueTask DisposeAsync()
+#else
+        private async Task DisposeAsync()
+#endif
+        {
             if (disposed.TrySetTrue())
             {
                 cancellationTokenSource.Cancel();
@@ -58,7 +64,7 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
 
                 log.Info("Releasing a lock with path '{Path}'.", path);
 
-                var delete = client.DeleteProtectedAsync(new DeleteRequest(path), log).GetAwaiter().GetResult();
+                var delete = await client.DeleteProtectedAsync(new DeleteRequest(path), log).ConfigureAwait(false);
                 deleteResult.TrySetResult(delete);
                 delete.EnsureSuccess();
 
@@ -66,7 +72,7 @@ namespace Vostok.ZooKeeper.Recipes.Helpers
             }
             else
             {
-                var delete = deleteResult.Task.GetAwaiter().GetResult();
+                var delete = await deleteResult.Task.ConfigureAwait(false);
                 delete.EnsureSuccess();
             }
         }
